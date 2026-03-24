@@ -807,11 +807,12 @@ input { font-family: inherit; }
 }
 
 @media (max-width: 768px) {
-  /* Navbar: hide text links, keep logo + CTA */
+  /* Navbar: compact on mobile */
   .navbar { padding: 0 var(--sp-4); }
-  .navbar-links .nav-link { display: none; }
   .navbar-links { gap: var(--sp-3); }
-  .nav-cta { padding: 8px var(--sp-4); font-size: var(--text-tiny); }
+  .navbar-links .nav-link { font-size: var(--text-tiny); }
+  .nav-cta { padding: 8px var(--sp-3); font-size: var(--text-tiny); }
+  .logo-text { font-size: var(--text-small); }
 
   /* Landing hero */
   .landing-hero { padding: 0 var(--sp-5) var(--sp-6); min-height: 70vh; }
