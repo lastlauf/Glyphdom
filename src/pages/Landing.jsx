@@ -1,0 +1,196 @@
+import { useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import TEMPLATES from '../lib/templates/index.js';
+import { IconLightning, IconSliders, IconHexGrid, IconPalette } from '../components/Icons.jsx';
+import { registerPreview, unregisterPreview } from '../lib/sharedLoop.js';
+
+const SCRAMBLE_CHARS = '█▓▒░|/\\-_+';
+
+function scrambleTo(el, final, delay = 0, duration = 900) {
+  if (!el) return;
+  setTimeout(() => {
+    let start = null;
+    function step(ts) {
+      if (!start) start = ts;
+      const p = Math.min((ts - start) / duration, 1);
+      const revealed = Math.floor(p * final.length);
+      el.textContent = final.split('').map((c, i) =>
+        i < revealed ? c : c === ' ' ? ' ' : SCRAMBLE_CHARS[Math.floor(Math.random() * SCRAMBLE_CHARS.length)]
+      ).join('');
+      if (p < 1) requestAnimationFrame(step);
+      else el.textContent = final;
+    }
+    requestAnimationFrame(step);
+  }, delay);
+}
+
+function GalleryCard({ template, index }) {
+  const navigate = useNavigate();
+  const canvasRef = useRef(null);
+  const instRef = useRef(null);
+  const paramsRef = useRef(null);
+  const colorsRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !template) return;
+
+    const params = Object.fromEntries(
+      Object.entries(template.params).map(([k, v]) => [k, v.default])
+    );
+    const colors = { ...template.colors };
+    paramsRef.current = params;
+    colorsRef.current = colors;
+
+    const setSize = () => {
+      canvas.width = canvas.offsetWidth || 300;
+      canvas.height = canvas.offsetHeight || 200;
+    };
+    setSize();
+
+    const inst = template.createInstance();
+    instRef.current = inst;
+    inst.init(canvas, params, colors);
+
+    const tick = (dt) => {
+      if (!canvas.isConnected) return;
+      inst.update(dt * 0.55, paramsRef.current, colorsRef.current);
+      inst.render(
+        canvas.getContext('2d'),
+        canvas.width, canvas.height,
+        12, 18,
+        paramsRef.current, colorsRef.current
+      );
+    };
+    registerPreview(tick);
+
+    return () => {
+      unregisterPreview(tick);
+      if (inst.destroy) inst.destroy();
+    };
+  }, [template]);
+
+  return (
+    <div
+      className="template-gallery-card"
+      style={{ animationDelay: `${index * 70 + 300}ms` }}
+      onClick={() => navigate('/studio')}
+    >
+      <div className="template-gallery-canvas">
+        <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
+      </div>
+      <div className="template-gallery-footer">
+        <span className="template-gallery-name">{template.name}</span>
+        <span className="template-gallery-desc">{template.description}</span>
+      </div>
+    </div>
+  );
+}
+
+// Lightweight ASCII background renderer for the hero
+function useHeroBgCanvas(canvasRef) {
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    let raf;
+    let time = 0;
+    const CHARS = '.:-=+*#%@';
+
+    function resize() {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    }
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+
+    function draw(ts) {
+      time += 0.008;
+      const { width: w, height: h } = canvas;
+      ctx.clearRect(0, 0, w, h);
+      const cw = 18, ch = 24;
+      const cols = Math.floor(w / cw), rows = Math.floor(h / ch);
+      ctx.font = `300 ${ch - 6}px "JetBrains Mono", monospace`;
+      ctx.textAlign = 'center';
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const nx = c / cols * 4 + time * 0.5;
+          const ny = r / rows * 3 + time * 0.3;
+          const wave = Math.sin(nx * 1.5 + ny * 2 + time) * 0.5
+            + Math.sin(nx * 0.7 - ny + time * 1.3) * 0.3
+            + Math.sin((nx + ny) * 2.5 + time * 0.6) * 0.2;
+          const v = (wave + 1) * 0.5;
+          const idx = Math.floor(v * (CHARS.length - 1));
+          const alpha = 0.04 + v * 0.1;
+          ctx.fillStyle = `rgba(17,17,16,${alpha})`;
+          ctx.fillText(CHARS[idx], c * cw + cw / 2, r * ch + ch - 4);
+        }
+      }
+      raf = requestAnimationFrame(draw);
+    }
+    raf = requestAnimationFrame(draw);
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+  }, [canvasRef]);
+}
+
+export default function Landing() {
+  const headRef = useRef(null);
+  const heroBgRef = useRef(null);
+
+  useEffect(() => {
+    scrambleTo(headRef.current, 'Make text move.', 500, 1200);
+  }, []);
+
+  useHeroBgCanvas(heroBgRef);
+
+  return (
+    <div className="landing">
+      <div className="landing-hero">
+        <canvas ref={heroBgRef} className="hero-bg-canvas" aria-hidden="true" />
+        <div className="landing-headline-wrap">
+          <h1 ref={headRef} className="landing-headline">██████████████</h1>
+        </div>
+        <p className="landing-sub">
+          Design living ASCII systems—responsive, reactive, and endlessly variable.
+        </p>
+        <div className="landing-cta-row">
+          <Link to="/studio" className="cta-primary">Open Studio</Link>
+          <Link to="/gallery" className="cta-ghost">Browse Gallery</Link>
+        </div>
+      </div>
+
+      <div className="landing-features-strip">
+        {[
+          { icon: <IconLightning size={22} />, title: 'Live Animation',    desc: '60fps HTML5 Canvas. Every frame, every character.' },
+          { icon: <IconSliders size={22} />, title: 'Real-Time Params',  desc: 'Drag sliders — watch the animation respond instantly.' },
+          { icon: <IconHexGrid size={22} />, title: `${TEMPLATES.length} Templates`,      desc: 'Skull, Fire, Pac-Man, Tetris, Snake and more. Each fully customizable.' },
+          { icon: <IconPalette size={22} />, title: 'Color Presets',     desc: 'Neon green, amber, cyan, hot pink and custom hex input.' },
+        ].map((f, i) => (
+          <div
+            key={f.title}
+            className="feature-item"
+            style={{ animation: 'fadeUp 400ms var(--ease-expo-out) both', animationDelay: `${200 + i * 80}ms` }}
+          >
+            <div className="feature-icon">{f.icon}</div>
+            <div className="feature-title">{f.title}</div>
+            <p className="feature-desc">{f.desc}</p>
+          </div>
+        ))}
+      </div>
+
+      <div className="landing-grid-section">
+        <div className="landing-grid-header">
+          <h2 className="landing-grid-title">Templates</h2>
+          <span className="landing-grid-count">{TEMPLATES.length} animations</span>
+        </div>
+        <div className="template-gallery-grid">
+          {TEMPLATES.map((tmpl, i) => (
+            <GalleryCard key={tmpl.name} template={tmpl} index={i} />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
