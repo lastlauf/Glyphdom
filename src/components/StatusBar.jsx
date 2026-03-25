@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 
-export default function StatusBar({ stats }) {
+export default function StatusBar({ stats, inline }) {
   const { fps = 0, chars = 0, cols = 0, rows = 0 } = stats || {};
   const [displayFps, setDisplayFps] = useState(fps);
   const smoothRef = useRef(fps);
@@ -12,6 +12,12 @@ export default function StatusBar({ stats }) {
   }, [fps]);
 
   const fpsColor = displayFps >= 55 ? '#00FF41' : displayFps >= 30 ? '#FFB000' : '#FF4444';
+
+  if (inline) return (
+    <span className="status-inline">
+      <span style={{ color: fpsColor, fontFamily: 'var(--font-mono)', fontSize: '10px', letterSpacing: '0.06em' }}>{displayFps} FPS</span>
+    </span>
+  );
 
   return (
     <div className="status-bar">

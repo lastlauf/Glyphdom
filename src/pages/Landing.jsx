@@ -69,7 +69,7 @@ function scrambleTo(el, final, delay = 0, duration = 900) {
   }, delay);
 }
 
-function GalleryCard({ template, index }) {
+function GalleryCard({ template, index, templateIndex }) {
   const navigate = useNavigate();
   const canvasRef = useRef(null);
   const instRef = useRef(null);
@@ -119,7 +119,7 @@ function GalleryCard({ template, index }) {
     <div
       className="template-gallery-card"
       style={{ animationDelay: `${index * 70 + 300}ms` }}
-      onClick={() => navigate('/studio')}
+      onClick={() => navigate(`/studio?t=${templateIndex}`)}
     >
       <div className="template-gallery-canvas">
         <canvas ref={canvasRef} style={{ display: 'block', width: '100%', height: '100%' }} />
@@ -246,7 +246,7 @@ export default function Landing() {
         </div>
         <div className="template-gallery-grid">
           {TEMPLATES.map((tmpl, i) => (
-            <GalleryCard key={tmpl.name} template={tmpl} index={i} />
+            <GalleryCard key={tmpl.name} template={tmpl} index={i} templateIndex={i} />
           ))}
         </div>
       </div>
