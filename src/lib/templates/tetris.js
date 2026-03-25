@@ -122,10 +122,12 @@ function createInstance() {
 
   return {
     init(canvas, params) {
-      s.cols = Math.max(6, Math.min(14, Math.round(params.width)));
-      // Determine rows from canvas aspect ratio
-      const aspect = canvas.height / canvas.width;
-      s.rows = Math.max(12, Math.floor(s.cols * aspect * 1.4));
+      // Fit the grid so cells are never smaller than 8px
+      const minCell = 8;
+      const maxColsFromCanvas = Math.floor(canvas.width  / minCell) - 2;
+      s.cols = Math.max(4, Math.min(maxColsFromCanvas, Math.round(params.width || 10)));
+      const cellSize = Math.max(minCell, Math.floor(canvas.width / (s.cols + 2)));
+      s.rows = Math.max(6, Math.floor(canvas.height / cellSize) - 1);
       s.canvasW = canvas.width;
       s.canvasH = canvas.height;
       s.tick = 0;

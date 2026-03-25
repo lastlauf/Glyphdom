@@ -4,34 +4,32 @@ import TEMPLATES from '../lib/templates/index.js';
 import { IconLightning, IconSliders, IconHexGrid, IconPalette } from '../components/Icons.jsx';
 import { registerPreview, unregisterPreview } from '../lib/sharedLoop.js';
 
-const skullTemplate = TEMPLATES.find(t => t.name === 'Skull');
+const flowTemplate = TEMPLATES.find(t => t.name === 'Flow Field');
 
-function SkullCanvas() {
+function ShowcaseCanvas() {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !skullTemplate) return;
+    if (!canvas || !flowTemplate) return;
 
     const params = Object.fromEntries(
-      Object.entries(skullTemplate.params).map(([k, v]) => [k, v.default])
+      Object.entries(flowTemplate.params).map(([k, v]) => [k, v.default])
     );
-    const colors = { ...skullTemplate.colors };
+    const colors = { ...flowTemplate.colors };
 
     const resize = () => {
-      canvas.width = canvas.offsetWidth;
+      canvas.width  = canvas.offsetWidth;
       canvas.height = canvas.offsetHeight;
     };
     resize();
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
-    const inst = skullTemplate.createInstance();
+    const inst = flowTemplate.createInstance();
     inst.init(canvas, params, colors);
 
-    // Full-speed dedicated rAF for the hero skull
-    let raf;
-    let last = 0;
+    let raf, last = 0;
     const tick = (ts) => {
       const dt = last ? Math.min((ts - last) / 1000, 0.05) : 0.016;
       last = ts;
@@ -229,13 +227,13 @@ export default function Landing() {
 
       <div className="skull-showcase">
         <div className="skull-showcase-canvas-wrap">
-          <SkullCanvas />
+          <ShowcaseCanvas />
         </div>
         <div className="skull-showcase-copy">
-          <p className="skull-showcase-label">3D ASCII</p>
-          <h2 className="skull-showcase-heading">Every character<br />is a decision.</h2>
+          <p className="skull-showcase-label">Interactive</p>
+          <h2 className="skull-showcase-heading">Move your cursor<br />through it.</h2>
           <p className="skull-showcase-body">
-            Depth-mapped point clouds projected in real time. Each glyph is chosen by brightness, distance, and density — no sprites, no textures, no shortcuts.
+            Every character responds to where you are. Hover the canvas — a vortex bends the flow field around your cursor in real time.
           </p>
           <Link to="/studio" className="cta-primary" style={{ alignSelf: 'flex-start' }}>Try in Studio</Link>
         </div>
