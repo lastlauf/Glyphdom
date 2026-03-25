@@ -27,7 +27,7 @@ export default function Navbar() {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      scrambleTo(logoRef.current, 'ASCIIFORGE', 1100);
+      scrambleTo(logoRef.current, 'GLYPHDOM', 1100);
     }, 200);
     return () => clearTimeout(timer);
   }, []);
@@ -35,7 +35,7 @@ export default function Navbar() {
   return (
     <nav className="navbar">
       <Link to="/" className="navbar-logo">
-        <span ref={logoRef} className="logo-text">████████████</span>
+        <span ref={logoRef} className="logo-text">████████</span>
       </Link>
 
       <div className="navbar-links">

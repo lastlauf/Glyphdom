@@ -19,8 +19,8 @@ const HOVER_EFFECTS = [
 
 function generateEmbedCode(template) {
   const name = template.name.toLowerCase().replace(/\s+/g, '-');
-  return `<canvas id="ascii-forge" width="800" height="600"></canvas>
-<script src="https://asciiforge.dev/embed.js"
+  return `<canvas id="glyphdom" width="800" height="600"></canvas>
+<script src="https://glyphdom.vercel.app/embed.js"
   data-template="${name}"
   data-width="800"
   data-height="600">
@@ -51,7 +51,7 @@ export default function Studio() {
       {/* Canvas + top bar */}
       <div className="canvas-area">
         <div className="studio-nav">
-          <Link to="/" className="studio-logo">ASCIIFORGE</Link>
+          <Link to="/" className="studio-logo">GLYPHDOM</Link>
           <div className="studio-nav-links">
             <Link to="/" className="studio-nav-link">Gallery</Link>
             <Link to="/gallery" className="studio-nav-link">Community</Link>

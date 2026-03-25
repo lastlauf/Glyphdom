@@ -229,7 +229,7 @@ export default function Editor() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'asciiforge-export.gif';
+    a.download = 'glyphdom-export.gif';
     a.click();
     URL.revokeObjectURL(url);
     setRecording(false);
@@ -239,10 +239,10 @@ export default function Editor() {
   const generateEmbedCode = useCallback(() => {
     if (!media) return '';
     const s = settings;
-    return `<!-- AsciiForge Embed -->
-<canvas id="ascii-forge-editor" width="800" height="600"></canvas>
+    return `<!-- Glyphdom Embed -->
+<canvas id="glyphdom-editor" width="800" height="600"></canvas>
 <script>
-  // Visit asciiforge-self.vercel.app/editor
+  // Visit glyphdom.vercel.app/editor
   // to create your own ASCII art from images
 </script>`;
   }, [media, settings]);
@@ -276,7 +276,7 @@ export default function Editor() {
     <div className="editor-layout">
       <div className="editor-canvas-area">
         <div className="studio-nav">
-          <Link to="/" className="studio-logo">ASCIIFORGE</Link>
+          <Link to="/" className="studio-logo">GLYPHDOM</Link>
           <div className="studio-nav-links">
             <Link to="/studio" className="studio-nav-link">Studio</Link>
             <Link to="/gallery" className="studio-nav-link">Community</Link>
