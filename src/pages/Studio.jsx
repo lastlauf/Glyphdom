@@ -39,12 +39,15 @@ export default function Studio() {
   const [copied, setCopied] = useState(false);
   const [hoverEffect, setHoverEffect] = useState('ripple');
   const [glowEnabled, setGlowEnabled] = useState(true);
-  const [panelOpen, setPanelOpen] = useState(true);
+  const [controlsOpen, setControlsOpen] = useState(false);
 
   const template = TEMPLATES[activeIdx];
   const { params, colors, setParam, setColor, setColors, resetParams, randomizeParams } = useParams(template);
 
-  const handleSelectTemplate = useCallback((idx) => setActiveIdx(idx), []);
+  const handleSelectTemplate = useCallback((idx) => {
+    setActiveIdx(idx);
+    setControlsOpen(true); // auto-open controls when selecting a template
+  }, []);
   const handlePresetApply = useCallback((preset) => setColors(preset), [setColors]);
   const handleStats = useCallback((s) => setStats(s), []);
   const handleCopyEmbed = useCallback(() => {
@@ -77,107 +80,110 @@ export default function Studio() {
         </div>
       </div>
 
-      {/* Collapse toggle tab */}
-      <button
-        className={`panel-tab ${panelOpen ? 'panel-tab--open' : ''}`}
-        onClick={() => setPanelOpen(v => !v)}
-        aria-label={panelOpen ? 'Collapse controls' : 'Expand controls'}
-      >
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-          <path
-            d={panelOpen ? 'M8 2L4 6L8 10' : 'M4 2L8 6L4 10'}
-            stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-          />
-        </svg>
-      </button>
+      {/* Controls panel — slides out from behind template strip */}
+      <aside className={`studio-controls-panel ${controlsOpen ? 'is-open' : ''}`}>
+        <div className="controls-panel-inner">
 
-      {/* Overlay control panel */}
-      <aside className={`studio-overlay-panel ${panelOpen ? 'is-open' : ''}`}>
-        <div className="overlay-panel-scroll">
-
-          <section className="panel-section">
-            <h2 className="section-label">Template</h2>
-            <div className="template-list">
-              {TEMPLATES.map((tmpl, idx) => (
-                <MiniPreview
-                  key={tmpl.name}
-                  template={tmpl}
-                  active={idx === activeIdx}
-                  onClick={() => handleSelectTemplate(idx)}
-                />
-              ))}
+          <div className="controls-panel-header">
+            <span className="controls-panel-title">{template.name}</span>
+            <div className="controls-panel-actions">
+              <button className="btn-icon" onClick={randomizeParams} title="Randomize"><IconShuffle size={14} /></button>
+              <button className="btn-icon" onClick={resetParams} title="Reset"><IconReset size={14} /></button>
             </div>
-          </section>
+          </div>
 
-          <section className="panel-section">
-            <h2 className="section-label">Parameters</h2>
-            <div className="params-list">
-              {Object.entries(template.params).map(([key, def]) => (
-                <ParamSlider
-                  key={key}
-                  label={def.label}
-                  min={def.min}
-                  max={def.max}
-                  step={def.step}
-                  value={params[key] ?? def.default}
-                  defaultValue={def.default}
-                  onChange={(v) => setParam(key, v)}
-                  onReset={() => setParam(key, def.default)}
-                />
-              ))}
-            </div>
-          </section>
+          <div className="controls-scroll">
+            {/* Parameters */}
+            {Object.keys(template.params).length > 0 && (
+              <section className="ctrl-section">
+                <h3 className="ctrl-label">Parameters</h3>
+                <div className="params-list">
+                  {Object.entries(template.params).map(([key, def]) => (
+                    <ParamSlider
+                      key={key}
+                      label={def.label}
+                      min={def.min}
+                      max={def.max}
+                      step={def.step}
+                      value={params[key] ?? def.default}
+                      defaultValue={def.default}
+                      onChange={(v) => setParam(key, v)}
+                      onReset={() => setParam(key, def.default)}
+                    />
+                  ))}
+                </div>
+              </section>
+            )}
 
-          <section className="panel-section">
-            <h2 className="section-label">Interaction</h2>
-            <div className="interaction-controls">
-              <div className="control-row">
-                <span className="control-label">Cursor Effect</span>
+            {/* Interaction */}
+            <section className="ctrl-section">
+              <h3 className="ctrl-label">Interaction</h3>
+              <div className="ctrl-row">
+                <span className="ctrl-row-label">Cursor Effect</span>
                 <div className="hover-effect-pills">
                   {HOVER_EFFECTS.map(eff => (
-                    <button
-                      key={eff.id}
+                    <button key={eff.id}
                       className={`effect-pill ${hoverEffect === eff.id ? 'active' : ''}`}
-                      onClick={() => setHoverEffect(eff.id)}
-                    >
+                      onClick={() => setHoverEffect(eff.id)}>
                       {eff.label}
                     </button>
                   ))}
                 </div>
               </div>
-              <div className="control-row">
-                <span className="control-label">Glow</span>
+              <div className="ctrl-row">
+                <span className="ctrl-row-label">Glow</span>
                 <button className={`toggle-btn ${glowEnabled ? 'active' : ''}`}
                   onClick={() => setGlowEnabled(v => !v)}>
                   {glowEnabled ? 'On' : 'Off'}
                 </button>
               </div>
-            </div>
-          </section>
+            </section>
 
-          <section className="panel-section">
-            <h2 className="section-label">Colors</h2>
-            <ColorPicker colors={colors} onColorChange={setColor} onPresetApply={handlePresetApply} />
-          </section>
+            {/* Colors */}
+            <section className="ctrl-section">
+              <h3 className="ctrl-label">Colors</h3>
+              <ColorPicker colors={colors} onColorChange={setColor} onPresetApply={handlePresetApply} />
+            </section>
 
-          <section className="panel-section">
-            <h2 className="section-label">Export</h2>
-            <div className="export-section">
-              <p className="export-desc">Embed on any webpage:</p>
+            {/* Export */}
+            <section className="ctrl-section">
+              <h3 className="ctrl-label">Export</h3>
               <div className="export-code-block">
                 <pre className="export-code">{generateEmbedCode(template)}</pre>
                 <button className="export-copy-btn" onClick={handleCopyEmbed}>
                   {copied ? 'Copied' : 'Copy'}
                 </button>
               </div>
-            </div>
-          </section>
-
-          <div className="panel-actions">
-            <button className="btn-action btn-randomize" onClick={randomizeParams}><IconShuffle size={15} /> Randomize</button>
-            <button className="btn-action btn-reset" onClick={resetParams}><IconReset size={15} /> Reset</button>
+            </section>
           </div>
+        </div>
+      </aside>
 
+      {/* Template strip — always visible on far right */}
+      <aside className="studio-template-strip">
+        {/* Controls toggle — sits on left edge of template strip */}
+        <button
+          className={`controls-toggle ${controlsOpen ? 'is-open' : ''}`}
+          onClick={() => setControlsOpen(v => !v)}
+          title={controlsOpen ? 'Hide controls' : 'Show controls'}
+        >
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+            <path
+              d={controlsOpen ? 'M7 1L3 5L7 9' : 'M3 1L7 5L3 9'}
+              stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+            />
+          </svg>
+        </button>
+
+        <div className="template-strip-scroll">
+          {TEMPLATES.map((tmpl, idx) => (
+            <MiniPreview
+              key={tmpl.name}
+              template={tmpl}
+              active={idx === activeIdx}
+              onClick={() => handleSelectTemplate(idx)}
+            />
+          ))}
         </div>
       </aside>
     </div>
