@@ -5,15 +5,18 @@ import { registerPreview, unregisterPreview } from '../lib/sharedLoop.js';
 import { IconHeart } from '../components/Icons.jsx';
 
 const MOCK_ENTRIES = [
-  { id: 1, template: 'Matrix',    preset: 'Neon Green', author: 'user_0x1A', likes: 142 },
-  { id: 2, template: 'Fire',      preset: 'Hot Pink',   author: 'crt_wizard', likes: 89 },
-  { id: 3, template: 'Starfield', preset: 'Ice Blue',   author: 'void_scan', likes: 231 },
-  { id: 4, template: 'Marble',    preset: 'Amber',      author: 'glitch.art', likes: 67 },
-  { id: 5, template: 'Plasma',    preset: 'Custom',     author: 'termcore',  likes: 188 },
-  { id: 6, template: 'Circuits',  preset: 'Cyan',       author: 'vt100_fan', likes: 54 },
-  { id: 7, template: 'Skull',     preset: 'Classic',    author: 'bone_haus', likes: 312 },
-  { id: 8, template: 'Ocean',     preset: 'Ice Blue',   author: 'wav_form',  likes: 97  },
-  { id: 9, template: 'Rain',      preset: 'Cyan',       author: 'drip_feed', likes: 74  },
+  { id:  1, template: 'Pac-Man',        title: 'Pac-Man',         author: 'ghost_hunt',   likes: 847 },
+  { id:  2, template: 'Space Invaders', title: 'Space Invaders',  author: 'pixel_raid',   likes: 612 },
+  { id:  3, template: 'Nyan Cat',       title: 'Nyan Cat',        author: 'nyan.wav',     likes: 1204 },
+  { id:  4, template: 'Snake',          title: 'Snake',           author: 'snek_king',    likes: 389 },
+  { id:  5, template: 'Tetris',         title: 'Tetris',          author: 'tetromino_',   likes: 731 },
+  { id:  6, template: 'Matrix',         title: 'The Matrix',      author: 'r3d_pill',     likes: 956 },
+  { id:  7, template: 'Game of Life',   title: 'Game of Life',    author: 'conway_fan',   likes: 428 },
+  { id:  8, template: 'Starfield',      title: 'Hyperspace',      author: 'han_s0lo',     likes: 573 },
+  { id:  9, template: 'Plasma',         title: 'Synthwave',       author: 'vapor_wave',   likes: 682 },
+  { id: 10, template: 'Fire',           title: 'Hadouken',        author: 'sf2_fan',      likes: 441 },
+  { id: 11, template: 'Ripple',         title: 'Blade Runner',    author: 'voight_k',     likes: 318 },
+  { id: 12, template: 'Flow Field',     title: 'Interstellar',    author: 'nolan_wr',     likes: 509 },
 ];
 
 function GalleryPreview({ templateName }) {
@@ -81,10 +84,12 @@ export default function Gallery() {
               <GalleryPreview templateName={entry.template} />
             </div>
             <div className="gallery-card-meta">
-              <span className="gallery-author">@{entry.author}</span>
+              <div className="gallery-card-info">
+                <span className="gallery-card-title">{entry.title}</span>
+                <span className="gallery-author">@{entry.author}</span>
+              </div>
               <span className="gallery-likes"><IconHeart size={13} /> {entry.likes}</span>
             </div>
-            <div className="gallery-preset-badge">{entry.preset}</div>
           </div>
         ))}
       </div>

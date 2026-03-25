@@ -132,6 +132,162 @@ function GalleryCard({ template, index, templateIndex }) {
   );
 }
 
+// Mona Lisa portrait — procedural ASCII portrait with sfumato atmosphere
+function MonaLisaPortrait() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    canvas.width  = 384;
+    canvas.height = 504;
+
+    const CHARS = ' .,:;!|i+xX#%@$&█▓▒░';
+    let time = 0;
+    let raf;
+
+    function noise(x, y, t) {
+      return (
+        Math.sin(x * 2.7 + y * 1.3 + t * 0.12) * 0.4 +
+        Math.cos(x * 1.5 - y * 2.1 + t * 0.09) * 0.3 +
+        Math.sin((x + y) * 3.1 + t * 0.15) * 0.2 +
+        Math.cos(x * 0.9 + y * 4.3 - t * 0.07) * 0.1
+      );
+    }
+
+    function draw() {
+      const ctx = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      const cw = 8, ch = 12;
+      const cols = Math.ceil(W / cw), rows = Math.ceil(H / ch);
+
+      ctx.fillStyle = '#131208';
+      ctx.fillRect(0, 0, W, H);
+      ctx.font = '500 10px "JetBrains Mono", monospace';
+      ctx.textAlign = 'center';
+
+      const t = time;
+      // Mona Lisa — 3/4 pose, face slightly left of center
+      const FCX = 0.475, FCY = 0.355;
+
+      for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < cols; col++) {
+          const nx = (col + 0.5) / cols;
+          const ny = (row + 0.5) / rows;
+          const dx = nx - FCX;
+          const dy = ny - FCY;
+
+          // Zone detection — Mona Lisa proportions
+          const skinDist    = (dx / 0.205) ** 2 + (dy / 0.24) ** 2;
+          // Hair: parted in middle, flows down both sides
+          const hairTopD    = (dx / 0.165) ** 2 + ((ny - 0.175) / 0.15) ** 2;
+          const leftHairD   = ((nx - 0.235) / 0.125) ** 2 + ((ny - 0.46) / 0.28) ** 2;
+          const rightHairD  = ((nx - 0.715) / 0.105) ** 2 + ((ny - 0.42) / 0.24) ** 2;
+          const neckD       = ((nx - FCX) / 0.068) ** 2 + ((ny - 0.59) / 0.09) ** 2;
+          const handsD      = ((nx - 0.50) / 0.24) ** 2 + ((ny - 0.90) / 0.09) ** 2;
+          const inDress     = ny > 0.70 || (ny > 0.62 && (nx < 0.24 || nx > 0.74));
+          const inShoulders = ny > 0.57 && ny < 0.72 && Math.abs(dx) > 0.13 && Math.abs(dx) < 0.36;
+          // Eyes — slightly asymmetric (3/4 pose)
+          const leftEye     = ((nx - 0.412) / 0.031) ** 2 + ((ny - 0.352) / 0.018) ** 2 < 1;
+          const rightEye    = ((nx - 0.545) / 0.030) ** 2 + ((ny - 0.349) / 0.018) ** 2 < 1;
+          const lipsD       = ((nx - FCX + 0.008) / 0.062) ** 2 + ((ny - 0.465) / 0.020) ** 2;
+
+          const n  = noise(nx * 8, ny * 7, t);
+          const nn = (n + 1) * 0.5;
+
+          // Sfumato: hazy olive-yellow-green atmospheric background
+          const bgN    = noise(nx * 4, ny * 3.5, t * 0.25);
+          const bgHaze = (bgN + 1) * 0.5 * 0.6 + 0.4;
+          // Left side (rocks) darker olive, right side (sky/water) warmer yellow-green
+          const leftBias  = Math.max(0, 0.5 - nx) * 1.2;
+          const rightBias = Math.max(0, nx - 0.5) * 0.8;
+
+          let r, g, b, density;
+
+          if (leftEye || rightEye) {
+            r = 42; g = 32; b = 20; density = 0.90;
+
+          } else if (lipsD < 1.0) {
+            const lv = 0.72 + nn * 0.28;
+            r = Math.round(168 * lv); g = Math.round(98 * lv); b = Math.round(52 * lv);
+            density = 0.48 + nn * 0.36;
+
+          } else if (skinDist < 1.0) {
+            // Warm golden amber — da Vinci's characteristic warm flesh
+            const s = 0.74 + nn * 0.26;
+            r = Math.round((202 + nn * 28) * s);
+            g = Math.round((152 + nn * 20) * s);
+            b = Math.round((72  + nn * 16) * s);
+            density = 0.14 + nn * 0.36;
+
+          } else if (hairTopD < 1.0 && ny < FCY + 0.08) {
+            // Parted center hair — dark auburn
+            const hs = (Math.sin(nx * 13 + ny * 15 - t * 0.5) + 1) * 0.5;
+            r = Math.round(82 + hs * 26); g = Math.round(42 + hs * 18); b = Math.round(16 + hs * 10);
+            density = 0.64 + nn * 0.30;
+
+          } else if (leftHairD < 1.0) {
+            // Left flowing hair — dark auburn, gentle wave
+            const hs = (Math.sin(nx * 9 + ny * 18 - t * 0.45) + 1) * 0.5;
+            r = Math.round(80 + hs * 28); g = Math.round(40 + hs * 20); b = Math.round(15 + hs * 10);
+            density = 0.60 + nn * 0.32;
+
+          } else if (rightHairD < 1.0) {
+            const hs = (Math.sin(nx * 9 + ny * 16 - t * 0.40) + 1) * 0.5;
+            r = Math.round(78 + hs * 26); g = Math.round(38 + hs * 18); b = Math.round(14 + hs * 9);
+            density = 0.58 + nn * 0.32;
+
+          } else if (neckD < 1.0) {
+            const s = 0.70 + nn * 0.26;
+            r = Math.round(196 * s); g = Math.round(142 * s); b = Math.round(64 * s);
+            density = 0.15 + nn * 0.33;
+
+          } else if (handsD < 1.0) {
+            const s = 0.64 + nn * 0.28;
+            r = Math.round(188 * s); g = Math.round(136 * s); b = Math.round(60 * s);
+            density = 0.18 + nn * 0.34;
+
+          } else if (inDress || inShoulders) {
+            // Very dark olive-charcoal dress
+            const ds = (Math.sin(nx * 7 + ny * 5 + t * 0.2) + 1) * 0.5;
+            r = Math.round(26 + ds * 18 + leftBias * 8);
+            g = Math.round(28 + ds * 20 + leftBias * 6);
+            b = Math.round(16 + ds * 12);
+            density = 0.44 + nn * 0.42;
+
+          } else {
+            // Sfumato landscape — warm olive-yellow with atmospheric haze
+            const haze = bgHaze - leftBias * 0.3 + rightBias * 0.1;
+            r = Math.round(88  + haze * 68 - leftBias * 20);
+            g = Math.round(90  + haze * 58 - leftBias * 10);
+            b = Math.round(30  + haze * 32 + rightBias * 10);
+            density = 0.28 + haze * 0.44;
+          }
+
+          r = Math.min(255, Math.max(0, r));
+          g = Math.min(255, Math.max(0, g));
+          b = Math.min(255, Math.max(0, b));
+
+          const ci   = Math.min(CHARS.length - 1, Math.floor(density * CHARS.length));
+          const char = CHARS[ci];
+          if (char === ' ') continue;
+
+          ctx.fillStyle = `rgb(${r},${g},${b})`;
+          ctx.fillText(char, col * cw + cw / 2, row * ch + ch - 2);
+        }
+      }
+
+      time += 0.016 * 0.18; // slow, contemplative
+      raf = requestAnimationFrame(draw);
+    }
+
+    raf = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(raf);
+  }, []);
+
+  return <canvas ref={canvasRef} className="vangogh-canvas" />;
+}
+
 // Lightweight ASCII background renderer for the hero
 function useHeroBgCanvas(canvasRef) {
   useEffect(() => {
@@ -236,6 +392,25 @@ export default function Landing() {
             Every character responds to where you are. Hover the canvas — a vortex bends the flow field around your cursor in real time.
           </p>
           <Link to="/studio" className="cta-primary" style={{ alignSelf: 'flex-start' }}>Try in Studio</Link>
+        </div>
+      </div>
+
+      {/* Gallery CTA — Van Gogh portrait */}
+      <div className="gallery-portrait-cta">
+        <div className="gallery-portrait-canvas-wrap">
+          <MonaLisaPortrait />
+        </div>
+        <div className="gallery-portrait-copy">
+          <p className="gallery-portrait-label">Gallery</p>
+          <h2 className="gallery-portrait-heading">
+            Every portrait.<br />
+            Every loop.<br />
+            Every glitch.
+          </h2>
+          <p className="gallery-portrait-body">
+            The Glyphdom community turns images, videos, and ideas into living ASCII art. Browse what others have made — or upload your own.
+          </p>
+          <Link to="/gallery" className="cta-gallery">Browse Gallery →</Link>
         </div>
       </div>
 

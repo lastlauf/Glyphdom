@@ -17,7 +17,7 @@ import ripple        from './ripple.js';
 import magnetic      from './magnetic.js';
 
 export const TEMPLATES = [
-  flowfield, fire, starfield, pacman, spaceinvaders, plasma,
+  plasma, flowfield, fire, starfield, pacman, spaceinvaders,
   tetris, snake, matrix, nyancat, gameoflife,
   ocean, marble, circuits, rain, ripple, magnetic,
 ];
