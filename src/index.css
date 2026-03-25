@@ -961,6 +961,100 @@ input { font-family: inherit; }
   object-fit: cover;
   display: block;
 }
+.source-delete-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  background: rgba(0, 0, 0, 0.6);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: var(--text-small);
+  font-weight: 600;
+  border-radius: 8px;
+  opacity: 0;
+  transition: opacity var(--dur-micro) var(--ease-silk);
+  pointer-events: none;
+}
+.source-delete-overlay.visible {
+  opacity: 1;
+}
+.source-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-2);
+}
+.source-name {
+  font-size: var(--text-tiny);
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+}
+.source-type {
+  font-size: 10px;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  padding: 2px 8px;
+  border-radius: 100px;
+  flex-shrink: 0;
+}
+
+/* ─── EXPORT ACTIONS (Editor) ─────────── */
+.export-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.export-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: 11px var(--sp-4);
+  font-size: var(--text-small);
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  border-radius: 8px;
+  background: var(--text);
+  color: var(--surface);
+  transition:
+    background var(--dur-micro) var(--ease-silk),
+    transform var(--dur-instant) var(--ease-spring),
+    opacity var(--dur-micro) var(--ease-silk);
+}
+.export-btn:hover { background: #2A2A28; }
+.export-btn:active { transform: scale(0.97); }
+.export-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+.export-btn-secondary {
+  background: var(--surface-2);
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+}
+.export-btn-secondary:hover { background: var(--surface-3); color: var(--text); }
+
+.export-progress {
+  margin-top: var(--sp-2);
+  height: 3px;
+  background: var(--surface-3);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.export-progress-bar {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 100ms linear;
+}
 
 /* ═══════════════════════════════════════════
    KEYFRAMES

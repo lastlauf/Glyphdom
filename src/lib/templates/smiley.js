@@ -1,114 +1,193 @@
-// 3D Rotating Smiley Face
+// Smiley — 3D rendered yellow face, based on reference image
+// Bright yellow sphere with blue eyes, brown eyebrows, open mouth
 
-function buildSmileyPoints() {
-  const pts = [];
-  // Face sphere
-  for (let lat = 0; lat <= Math.PI; lat += 0.15) {
-    for (let lon = 0; lon < Math.PI * 2; lon += 0.18) {
-      pts.push({ x: Math.sin(lat)*Math.cos(lon), y: Math.cos(lat), z: Math.sin(lat)*Math.sin(lon), type: 'face' });
-    }
-  }
-  // Left eye
-  for (let a = 0; a < Math.PI * 2; a += 0.4) {
-    pts.push({ x: -0.35+Math.cos(a)*0.15, y: 0.25+Math.sin(a)*0.15, z: 0.92, type: 'eye' });
-  }
-  pts.push({ x: -0.35, y: 0.25, z: 0.95, type: 'pupil' });
-  // Right eye
-  for (let a = 0; a < Math.PI * 2; a += 0.4) {
-    pts.push({ x: 0.35+Math.cos(a)*0.15, y: 0.25+Math.sin(a)*0.15, z: 0.92, type: 'eye' });
-  }
-  pts.push({ x: 0.35, y: 0.25, z: 0.95, type: 'pupil' });
-  // Smile arc
-  for (let a = Math.PI * 0.1; a <= Math.PI * 0.9; a += 0.12) {
-    const r = 0.5;
-    pts.push({ x: Math.cos(a)*r, y: -0.15 + Math.sin(a)*(-0.25), z: 0.85, type: 'smile' });
-  }
-  // Cheek blush circles
-  for (let a = 0; a < Math.PI * 2; a += 0.45) {
-    pts.push({ x: -0.6+Math.cos(a)*0.12, y: 0.0+Math.sin(a)*0.08, z: 0.78, type: 'blush' });
-    pts.push({ x:  0.6+Math.cos(a)*0.12, y: 0.0+Math.sin(a)*0.08, z: 0.78, type: 'blush' });
-  }
-  return pts;
-}
+const CHARS = ' .,·:;-~=+*!|?#%@$&█▓▒░';
 
-const SMILEY_POINTS = buildSmileyPoints();
+function drawSmileyReference(w, h) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const ctx = c.getContext('2d');
 
-function project(x, y, z, cx, cy, fov) {
-  const sc = fov / (fov + z);
-  return { sx: cx + x*sc*cx*0.8, sy: cy - y*sc*cy*0.85, sc };
+  ctx.fillStyle = '#E8E0D0';
+  ctx.fillRect(0, 0, w, h);
+
+  const cx = w / 2, cy = h * 0.48, radius = Math.min(w, h) * 0.4;
+
+  // Main face — yellow sphere with 3D shading
+  const faceGrad = ctx.createRadialGradient(cx - radius * 0.2, cy - radius * 0.2, radius * 0.05, cx, cy, radius);
+  faceGrad.addColorStop(0, '#FFE44D');
+  faceGrad.addColorStop(0.4, '#FFCC00');
+  faceGrad.addColorStop(0.7, '#E6A800');
+  faceGrad.addColorStop(0.9, '#CC8800');
+  faceGrad.addColorStop(1, '#996600');
+  ctx.fillStyle = faceGrad;
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Specular highlight
+  const specGrad = ctx.createRadialGradient(cx - radius * 0.25, cy - radius * 0.3, 0, cx - radius * 0.25, cy - radius * 0.3, radius * 0.4);
+  specGrad.addColorStop(0, 'rgba(255,255,230,0.5)');
+  specGrad.addColorStop(1, 'rgba(255,255,200,0)');
+  ctx.fillStyle = specGrad;
+  ctx.beginPath();
+  ctx.arc(cx - radius * 0.25, cy - radius * 0.3, radius * 0.4, 0, Math.PI * 2);
+  ctx.fill();
+
+  // Eyebrows
+  ctx.strokeStyle = '#6B3A1F';
+  ctx.lineWidth = radius * 0.06;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx - radius * 0.42, cy - radius * 0.35);
+  ctx.quadraticCurveTo(cx - radius * 0.28, cy - radius * 0.5, cx - radius * 0.12, cy - radius * 0.38);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(cx + radius * 0.12, cy - radius * 0.38);
+  ctx.quadraticCurveTo(cx + radius * 0.28, cy - radius * 0.5, cx + radius * 0.42, cy - radius * 0.35);
+  ctx.stroke();
+
+  // Eyes
+  for (const side of [-1, 1]) {
+    const ex = cx + side * radius * 0.28;
+    ctx.fillStyle = '#FFFFF5';
+    ctx.beginPath();
+    ctx.ellipse(ex, cy - radius * 0.1, radius * 0.16, radius * 0.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#3366CC';
+    ctx.beginPath();
+    ctx.arc(ex - side * radius * 0.02, cy - radius * 0.08, radius * 0.1, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#111';
+    ctx.beginPath();
+    ctx.arc(ex - side * radius * 0.03, cy - radius * 0.07, radius * 0.05, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#FFF';
+    ctx.beginPath();
+    ctx.arc(ex + side * radius * 0.01, cy - radius * 0.13, radius * 0.03, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  // Mouth
+  ctx.fillStyle = '#8B1A1A';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + radius * 0.25, radius * 0.38, radius * 0.25, 0, 0, Math.PI);
+  ctx.fill();
+  ctx.fillStyle = '#5C0A0A';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + radius * 0.28, radius * 0.3, radius * 0.18, 0, 0, Math.PI);
+  ctx.fill();
+  ctx.fillStyle = '#CC4444';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + radius * 0.38, radius * 0.15, radius * 0.1, 0, 0, Math.PI);
+  ctx.fill();
+  ctx.fillStyle = '#FFFFFF';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy + radius * 0.22, radius * 0.3, radius * 0.06, 0, Math.PI, Math.PI * 2);
+  ctx.fill();
+
+  return c;
 }
 
 function createInstance() {
-  const s = { time: 0 };
+  const s = {
+    time: 0, refCanvas: null, refData: null, refW: 0, refH: 0,
+    mouseX: -1, mouseY: -1, mouseActive: false, hoverEffect: 'ripple',
+  };
+
   return {
-    init(canvas, params, colors) { s.time = 0; },
-    update(dt, params) { s.time += dt * params.rotateSpeed; },
+    setMouse(x, y, active, effect) {
+      s.mouseX = x; s.mouseY = y; s.mouseActive = active; s.hoverEffect = effect;
+    },
+    init(canvas, params, colors) {
+      s.time = 0;
+      s.refW = 120; s.refH = 120;
+      s.refCanvas = drawSmileyReference(s.refW, s.refH);
+      s.refData = s.refCanvas.getContext('2d').getImageData(0, 0, s.refW, s.refH).data;
+    },
+    update(dt, params) { s.time += dt * params.speed; },
     render(ctx, width, height, charW, charH, params, colors) {
-      ctx.fillStyle = colors.bg; ctx.fillRect(0,0,width,height);
-      const cx=width/2, cy=height/2;
-      const fov = Math.min(width,height)*0.9;
+      ctx.fillStyle = colors.bg;
+      ctx.fillRect(0, 0, width, height);
+      if (!s.refData) return;
+
+      const cols = Math.floor(width / charW);
+      const rows = Math.floor(height / charH);
+      const refAspect = s.refW / s.refH;
+      const charAspect = charW / charH;
+      const adjusted = refAspect / charAspect;
+      let fitCols, fitRows;
+      if (adjusted > cols / rows) { fitCols = cols; fitRows = Math.round(cols / adjusted); }
+      else { fitRows = rows; fitCols = Math.round(rows * adjusted); }
+      fitCols = Math.min(fitCols, cols);
+      fitRows = Math.min(fitRows, rows);
+      const ox = Math.floor((cols - fitCols) / 2);
+      const oy = Math.floor((rows - fitRows) / 2);
+
+      ctx.font = `500 ${charH - 2}px "JetBrains Mono", monospace`;
+      ctx.textAlign = 'center';
+
       const t = s.time;
-      const cosY=Math.cos(t), sinY=Math.sin(t);
-      const tilt = Math.sin(t*0.5)*0.2;
-      const cosX=Math.cos(tilt), sinX=Math.sin(tilt);
-      const scale = params.scale;
+      const mCol = s.mouseActive ? Math.floor(s.mouseX / charW) : -100;
+      const mRow = s.mouseActive ? Math.floor(s.mouseY / charH) : -100;
+      const bounceY = Math.sin(t * 2) * params.bounce * 2;
+      const squash = 1 + Math.sin(t * 2 + Math.PI / 2) * params.bounce * 0.03;
+      const stretch = 1 - Math.sin(t * 2 + Math.PI / 2) * params.bounce * 0.03;
 
-      const projected = [];
-      for (const pt of SMILEY_POINTS) {
-        const rx = pt.x*cosY - pt.z*sinY;
-        const rz0 = pt.x*sinY + pt.z*cosY;
-        const ry = pt.y*cosX - rz0*sinX;
-        const rz = pt.y*sinX + rz0*cosX;
-        const {sx,sy} = project(rx*scale, ry*scale, rz*scale*0.5, cx, cy, fov);
-        const depth = (rz+1.5)/3;
-        projected.push({sx,sy,depth,type:pt.type});
-      }
-      projected.sort((a,b)=>a.depth-b.depth);
+      for (let row = 0; row < fitRows; row++) {
+        for (let col = 0; col < fitCols; col++) {
+          const nx = (col / fitCols - 0.5) / squash + 0.5;
+          const ny = (row / fitRows - 0.5) / stretch + 0.5;
+          if (nx < 0 || nx > 1 || ny < 0 || ny > 1) continue;
 
-      ctx.font=`700 ${charH-2}px "JetBrains Mono", monospace`;
-      ctx.textAlign='center';
+          const px = Math.floor(nx * (s.refW - 1));
+          const py = Math.floor(ny * (s.refH - 1));
+          const i = (py * s.refW + px) * 4;
+          const r = s.refData[i], g = s.refData[i + 1], b = s.refData[i + 2];
+          const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
 
-      for (const {sx,sy,depth,type} of projected) {
-        if (sx<0||sx>width||sy<0||sy>height) continue;
-        const col=Math.floor(sx/charW), row=Math.floor(sy/charH);
-        const dx=col*charW+charW/2, dy=row*charH+charH-2;
-        let ch, color;
-        if (type==='pupil') { ch='●'; color='#111'; }
-        else if (type==='eye') { ch='○'; color='#111'; }
-        else if (type==='smile') { ch='▄'; color='#111'; }
-        else if (type==='blush') { ch='♥'; color=colors.glow; }
-        else {
-          // face surface
-          const t2=Math.max(0,Math.min(1,(depth-0.2)/0.7));
-          if (depth>0.82) ch='█';
-          else if (depth>0.65) ch='▓';
-          else if (depth>0.48) ch='▒';
-          else if (depth>0.32) ch='░';
-          else ch='.';
-          color=lerpColor(colors.secondary, colors.primary, t2);
+          const cIdx = Math.floor(lum * (CHARS.length - 1));
+          const ch = CHARS[Math.max(0, Math.min(CHARS.length - 1, cIdx))];
+          if (ch === ' ') continue;
+
+          const drawCol = col + ox;
+          const drawRow = row + oy;
+          let drawX = drawCol * charW + charW / 2;
+          let drawY = drawRow * charH + charH - 2 + bounceY;
+
+          if (s.mouseActive && s.hoverEffect !== 'none') {
+            const dx = drawCol - mCol, dy = drawRow - mRow;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 10) {
+              const prox = 1 - dist / 10;
+              if (s.hoverEffect === 'ripple') {
+                drawX += Math.sin(dist * 1.5 - t * 6) * prox * 3;
+              } else if (s.hoverEffect === 'repel') {
+                const angle = Math.atan2(dy, dx);
+                drawX += Math.cos(angle) * prox * prox * 14;
+                drawY += Math.sin(angle) * prox * prox * 14;
+              }
+            }
+          }
+
+          ctx.fillStyle = `rgb(${r},${g},${b})`;
+          ctx.fillText(ch, drawX, drawY);
         }
-        ctx.fillStyle=color;
-        ctx.fillText(ch,dx,dy);
       }
     },
-    destroy() {},
+    destroy() { s.refCanvas = null; s.refData = null; },
   };
-}
-
-function lerpColor(a,b,t){
-  const ar=parseInt(a.slice(1,3),16),ag=parseInt(a.slice(3,5),16),ab=parseInt(a.slice(5,7),16);
-  const br=parseInt(b.slice(1,3),16),bg=parseInt(b.slice(3,5),16),bb=parseInt(b.slice(5,7),16);
-  return `rgb(${Math.round(ar+(br-ar)*t)},${Math.round(ag+(bg-ag)*t)},${Math.round(ab+(bb-ab)*t)})`;
 }
 
 export default {
   name: 'Smiley',
-  description: '3D rotating smiley',
+  description: '3D bouncing smiley face',
   params: {
-    rotateSpeed: { min: 0.1, max: 3,  default: 0.7, label: 'Rotate Speed', step: 0.05 },
-    scale:       { min: 0.5, max: 2,  default: 1.0, label: 'Scale',        step: 0.05 },
-    glow:        { min: 0,   max: 1,  default: 0.6, label: 'Glow',         step: 0.05 },
+    speed: { min: 0.1, max: 3, default: 0.8, label: 'Speed', step: 0.05 },
+    bounce: { min: 0, max: 1, default: 0.5, label: 'Bounce', step: 0.05 },
+    scale: { min: 0.5, max: 2, default: 1.0, label: 'Scale', step: 0.05 },
+    glow: { min: 0, max: 1, default: 0.4, label: 'Glow', step: 0.05 },
   },
-  colors: { bg: '#0A0A0B', primary: '#FFD700', secondary: '#AA8800', glow: '#FFEE44' },
+  colors: { bg: '#E8E0D0', primary: '#FFCC00', secondary: '#3366CC', glow: '#FFE44D' },
   createInstance,
 };

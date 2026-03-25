@@ -7,7 +7,6 @@ import plasma         from './plasma.js';
 import tetris         from './tetris.js';
 import snake          from './snake.js';
 import matrix         from './matrix.js';
-import starwarscrawl  from './starwarscrawl.js';
 import nyancat        from './nyancat.js';
 import gameoflife     from './gameoflife.js';
 import ocean          from './ocean.js';
@@ -19,7 +18,7 @@ import mario          from './mario.js';
 
 export const TEMPLATES = [
   skull, fire, starfield, pacman, spaceinvaders, plasma,
-  tetris, snake, matrix, starwarscrawl, nyancat, gameoflife,
+  tetris, snake, matrix, nyancat, gameoflife,
   ocean, marble, circuits, rain, smiley, mario,
 ];
 export default TEMPLATES;
