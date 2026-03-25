@@ -9,6 +9,14 @@ import MiniPreview from '../components/MiniPreview.jsx';
 import useParams from '../hooks/useParams.js';
 import TEMPLATES from '../lib/templates/index.js';
 
+const HOVER_EFFECTS = [
+  { id: 'ripple', label: 'Ripple' },
+  { id: 'repel', label: 'Repel' },
+  { id: 'spotlight', label: 'Spotlight' },
+  { id: 'glitch', label: 'Glitch' },
+  { id: 'none', label: 'Off' },
+];
+
 function generateEmbedCode(template) {
   const name = template.name.toLowerCase().replace(/\s+/g, '-');
   return `<canvas id="ascii-forge" width="800" height="600"></canvas>
@@ -23,6 +31,8 @@ export default function Studio() {
   const [activeIdx, setActiveIdx] = useState(0);
   const [stats, setStats] = useState({ fps: 0, chars: 0, cols: 0, rows: 0 });
   const [copied, setCopied] = useState(false);
+  const [hoverEffect, setHoverEffect] = useState('ripple');
+  const [glowEnabled, setGlowEnabled] = useState(true);
   const template = TEMPLATES[activeIdx];
 
   const { params, colors, setParam, setColor, setColors, resetParams, randomizeParams } = useParams(template);
@@ -53,6 +63,8 @@ export default function Studio() {
             params={params}
             colors={colors}
             onStats={handleStats}
+            hoverEffect={hoverEffect}
+            glowEnabled={glowEnabled}
           />
           <div className="canvas-scanlines" aria-hidden="true" />
           <div className="canvas-vignette" aria-hidden="true" />
@@ -92,6 +104,35 @@ export default function Studio() {
                 onReset={() => setParam(key, def.default)}
               />
             ))}
+          </div>
+        </section>
+
+        <section className="panel-section">
+          <h2 className="section-label">Interaction</h2>
+          <div className="interaction-controls">
+            <div className="control-row">
+              <span className="control-label">Cursor Effect</span>
+              <div className="hover-effect-pills">
+                {HOVER_EFFECTS.map(eff => (
+                  <button
+                    key={eff.id}
+                    className={`effect-pill ${hoverEffect === eff.id ? 'active' : ''}`}
+                    onClick={() => setHoverEffect(eff.id)}
+                  >
+                    {eff.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="control-row">
+              <span className="control-label">Glow</span>
+              <button
+                className={`toggle-btn ${glowEnabled ? 'active' : ''}`}
+                onClick={() => setGlowEnabled(v => !v)}
+              >
+                {glowEnabled ? 'On' : 'Off'}
+              </button>
+            </div>
           </div>
         </section>
 

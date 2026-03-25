@@ -69,7 +69,7 @@ export default function Gallery() {
           <h1 className="gallery-title">Gallery</h1>
           <p className="gallery-sub">Community creations — coming soon.</p>
         </div>
-        <Link to="/auth" className="cta-primary">
+        <Link to="/editor" className="cta-primary">
           Create Your Own
         </Link>
       </div>

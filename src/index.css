@@ -410,6 +410,71 @@ input { font-family: inherit; }
 .export-copy-btn:hover { background: #2A2A28; }
 .export-copy-btn:active { transform: scale(0.95); }
 
+/* ─── INTERACTION CONTROLS ────────────── */
+.interaction-controls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.control-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+.control-label {
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.hover-effect-pills {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.effect-pill {
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  transition:
+    background var(--dur-micro) var(--ease-silk),
+    color var(--dur-micro) var(--ease-silk),
+    border-color var(--dur-micro) var(--ease-silk);
+}
+.effect-pill:hover { color: var(--text); border-color: var(--border-2); }
+.effect-pill.active {
+  background: var(--text);
+  color: var(--surface);
+  border-color: var(--text);
+}
+.toggle-btn {
+  padding: 4px 14px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--text-dim);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  transition:
+    background var(--dur-micro) var(--ease-silk),
+    color var(--dur-micro) var(--ease-silk);
+}
+.toggle-btn.active {
+  background: rgba(var(--accent-rgb), 0.12);
+  color: var(--accent-dark);
+  border-color: rgba(var(--accent-rgb), 0.3);
+}
+
 /* ─── PANEL ACTIONS ────────────────────── */
 .panel-actions {
   display: flex; gap: var(--sp-2); padding: var(--sp-4) var(--sp-5);
@@ -792,6 +857,112 @@ input { font-family: inherit; }
 .auth-success .cta-primary { display: inline-flex; }
 
 /* ═══════════════════════════════════════════
+   EDITOR PAGE (drag & drop)
+═══════════════════════════════════════════ */
+.editor-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--bg);
+}
+.editor-canvas-area {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--canvas-bg);
+  position: relative;
+}
+.editor-canvas-wrap {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+}
+.editor-dropzone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--canvas-bg);
+  transition: background var(--dur-fast) var(--ease-silk);
+}
+.editor-dropzone.dragging {
+  background: rgba(10, 232, 184, 0.06);
+}
+.editor-dropzone.dragging .dropzone-content {
+  transform: scale(1.03);
+  border-color: var(--accent);
+}
+.dropzone-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: var(--sp-4);
+  padding: var(--sp-8);
+  border: 2px dashed rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  max-width: 420px;
+  transition: transform var(--dur-fast) var(--ease-expo-out), border-color var(--dur-fast) var(--ease-silk);
+}
+.dropzone-icon {
+  color: rgba(255, 255, 255, 0.25);
+  margin-bottom: var(--sp-2);
+}
+.dropzone-title {
+  font-family: var(--font-display);
+  font-size: var(--text-large);
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.7);
+  letter-spacing: -0.02em;
+}
+.dropzone-desc {
+  font-size: var(--text-small);
+  color: rgba(255, 255, 255, 0.3);
+  line-height: 1.5;
+  max-width: 300px;
+}
+.dropzone-browse-btn {
+  display: inline-flex;
+  align-items: center;
+  padding: 10px var(--sp-5);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: var(--text-small);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  border-radius: 100px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: background var(--dur-micro) var(--ease-silk), color var(--dur-micro) var(--ease-silk);
+}
+.dropzone-browse-btn:hover {
+  background: rgba(255, 255, 255, 0.14);
+  color: rgba(255, 255, 255, 0.85);
+}
+.editor-source-info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-3);
+}
+.source-preview {
+  width: 100%;
+  aspect-ratio: 16/10;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-2);
+}
+.source-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ═══════════════════════════════════════════
    KEYFRAMES
 ═══════════════════════════════════════════ */
 @keyframes fadeUp {
@@ -836,9 +1007,9 @@ input { font-family: inherit; }
   .auth-page { padding: var(--sp-4); }
   .auth-card { padding: var(--sp-5); }
 
-  /* Studio: prevent horizontal overflow */
-  .studio-layout { grid-template-columns: 1fr; height: auto; }
-  .canvas-area { height: 50vh; min-height: 300px; }
+  /* Studio + Editor: prevent horizontal overflow */
+  .studio-layout, .editor-layout { grid-template-columns: 1fr; height: auto; }
+  .canvas-area, .editor-canvas-area { height: 50vh; min-height: 300px; }
   .control-panel { height: auto; max-height: none; border-left: none; border-top: 1px solid var(--border); }
 }
 

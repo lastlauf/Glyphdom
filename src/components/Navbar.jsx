@@ -51,6 +51,12 @@ export default function Navbar() {
         >
           Gallery
         </Link>
+        <Link
+          to="/editor"
+          className={`nav-link ${location.pathname === '/editor' ? 'active' : ''}`}
+        >
+          Editor
+        </Link>
         <Link to="/studio" className="nav-cta">
           Launch Studio
         </Link>

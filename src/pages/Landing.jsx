@@ -153,11 +153,11 @@ export default function Landing() {
           <h1 ref={headRef} className="landing-headline">██████████████</h1>
         </div>
         <p className="landing-sub">
-          Design living ASCII systems—responsive, reactive, and endlessly variable.
+          Design living ASCII systems — responsive, reactive, and endlessly variable. Drop in any image or video and watch it transform.
         </p>
         <div className="landing-cta-row">
           <Link to="/studio" className="cta-primary">Open Studio</Link>
-          <Link to="/gallery" className="cta-ghost">Browse Gallery</Link>
+          <Link to="/editor" className="cta-ghost">Upload Media</Link>
         </div>
       </div>
 
@@ -165,8 +165,8 @@ export default function Landing() {
         {[
           { icon: <IconLightning size={22} />, title: 'Live Animation',    desc: '60fps HTML5 Canvas. Every frame, every character.' },
           { icon: <IconSliders size={22} />, title: 'Real-Time Params',  desc: 'Drag sliders — watch the animation respond instantly.' },
-          { icon: <IconHexGrid size={22} />, title: `${TEMPLATES.length} Templates`,      desc: 'Skull, Fire, Pac-Man, Tetris, Snake and more. Each fully customizable.' },
-          { icon: <IconPalette size={22} />, title: 'Color Presets',     desc: 'Neon green, amber, cyan, hot pink and custom hex input.' },
+          { icon: <IconHexGrid size={22} />, title: 'Media to ASCII',    desc: 'Drop any image or video. Watch it render as live ASCII art.' },
+          { icon: <IconPalette size={22} />, title: 'Interactive',       desc: 'Hover effects, glow, and cursor interaction built in.' },
         ].map((f, i) => (
           <div
             key={f.title}
