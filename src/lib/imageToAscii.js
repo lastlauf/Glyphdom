@@ -88,24 +88,24 @@ export function mediaToAsciiGrid(source, cols, rows, options = {}) {
   return grid;
 }
 
-// Render with animation effects and aspect-ratio centering
+// Render with animation effects, aspect-ratio centering, and optional glow
 export function renderAsciiGrid(ctx, grid, width, height, charW, charH, offsetX, offsetY, options = {}) {
   const {
     colorMode = true, bgColor = '#0A0A0B', tintColor = null,
-    time = 0, effects = {},
+    time = 0, effects = {}, glow = 0,
   } = options;
 
   ctx.fillStyle = bgColor;
   ctx.fillRect(0, 0, width, height);
-  ctx.font = `500 ${charH - 2}px "JetBrains Mono", monospace`;
+
+  // Use bolder weight at smaller char sizes for legibility
+  const weight = charH <= 8 ? 700 : charH <= 10 ? 600 : 500;
+  ctx.font = `${weight} ${charH - 1}px "JetBrains Mono", monospace`;
   ctx.textAlign = 'center';
 
   const { wave = 0, scan = 0, shimmer = 0, pulse = 0, jitter = 0 } = effects;
 
-  // Pulse: global brightness modulation
   const pulseMod = pulse > 0 ? 1 + Math.sin(time * 3) * pulse * 0.2 : 1;
-
-  // Scan line position (0-1 looping)
   const scanPos = scan > 0 ? (time * 0.5 * scan) % 1 : -1;
 
   for (let y = 0; y < grid.length; y++) {
@@ -114,31 +114,22 @@ export function renderAsciiGrid(ctx, grid, width, height, charW, charH, offsetX,
       const cell = row[x];
       if (cell.char === ' ') continue;
 
-      // Base position with centering offset
       let drawX = (x + offsetX) * charW + charW / 2;
-      let drawY = (y + offsetY) * charH + charH - 2;
+      let drawY = (y + offsetY) * charH + charH - 1;
 
-      // Wave: horizontal sinusoidal displacement
       if (wave > 0) {
         drawX += Math.sin(y * 0.3 + time * 2.5) * wave * 6;
         drawY += Math.cos(x * 0.2 + time * 1.8) * wave * 2;
       }
-
-      // Jitter: random positional noise
       if (jitter > 0) {
         drawX += (Math.random() - 0.5) * jitter * 6;
         drawY += (Math.random() - 0.5) * jitter * 4;
       }
 
-      // Brightness modifiers
       let brightMod = pulseMod;
-
-      // Shimmer: per-character random flicker
       if (shimmer > 0) {
         brightMod *= 1 + (Math.random() - 0.5) * shimmer * 0.6;
       }
-
-      // Scan line: bright band sweeping down
       if (scanPos >= 0) {
         const normY = y / grid.length;
         const dist = Math.abs(normY - scanPos);
@@ -169,5 +160,23 @@ export function renderAsciiGrid(ctx, grid, width, height, charW, charH, offsetX,
       ctx.fillStyle = `rgb(${r},${g},${b})`;
       ctx.fillText(cell.char, drawX, drawY);
     }
+  }
+
+  // Glow pass — composite blurred copy back at low opacity
+  if (glow > 0) {
+    const glowCanvas = document.createElement('canvas');
+    glowCanvas.width = width;
+    glowCanvas.height = height;
+    const gCtx = glowCanvas.getContext('2d');
+    gCtx.filter = `blur(${2 + glow * 4}px)`;
+    gCtx.globalAlpha = 0.3 + glow * 0.35;
+    gCtx.drawImage(ctx.canvas, 0, 0);
+    gCtx.filter = 'none';
+
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.globalAlpha = 0.2 + glow * 0.3;
+    ctx.drawImage(glowCanvas, 0, 0);
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
   }
 }

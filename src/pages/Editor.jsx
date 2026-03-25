@@ -20,6 +20,7 @@ export default function Editor() {
     colorMode: true,
     tintColor: null,
     charSize: 1,
+    glow: 0.3,
     // Animation effects
     wave: 0,
     scan: 0,
@@ -37,7 +38,8 @@ export default function Editor() {
 
   // Check if any animation effect is active
   const hasAnimation = settings.wave > 0 || settings.scan > 0 ||
-    settings.shimmer > 0 || settings.pulse > 0 || settings.jitter > 0;
+    settings.shimmer > 0 || settings.pulse > 0 || settings.jitter > 0 ||
+    settings.glow > 0;
 
   const handleFile = useCallback((file) => {
     if (!file) return;
@@ -99,9 +101,9 @@ export default function Editor() {
       timeRef.current += dt;
 
       const s = settingsRef.current;
-      const sizes = [6, 8, 10];
-      const cw = sizes[s.charSize] || 8;
-      const ch = Math.round(cw * 1.5);
+      const sizes = [4, 5, 7, 10];
+      const cw = sizes[s.charSize] || 7;
+      const ch = Math.round(cw * 1.4);
 
       const parent = canvas.parentElement;
       if (!parent) return;
@@ -128,6 +130,7 @@ export default function Editor() {
         bgColor: '#0A0A0B',
         tintColor: s.tintColor,
         time: timeRef.current,
+        glow: s.glow,
         effects: { wave: s.wave, scan: s.scan, shimmer: s.shimmer, pulse: s.pulse, jitter: s.jitter },
       });
 
@@ -162,7 +165,7 @@ export default function Editor() {
     const grid = mediaToAsciiGrid(media.element, cols, rows, { contrast: s.contrast, brightness: s.brightness, invert: s.invert });
     renderAsciiGrid(ctx, grid, w, h, cw, ch, offsetX, offsetY, {
       colorMode: s.colorMode, bgColor: '#0A0A0B', tintColor: s.tintColor,
-      time: 0, effects: {},
+      time: 0, glow: s.glow, effects: {},
     });
   }, [media, settings, hasAnimation]);
 
@@ -207,7 +210,8 @@ export default function Editor() {
       });
       renderAsciiGrid(offCtx, grid, gifW, gifH, cw, ch, offsetX, offsetY, {
         colorMode: s.colorMode, bgColor: '#0A0A0B', tintColor: s.tintColor,
-        time: t, effects: { wave: s.wave, scan: s.scan, shimmer: s.shimmer, pulse: s.pulse, jitter: s.jitter },
+        time: t, glow: s.glow,
+        effects: { wave: s.wave, scan: s.scan, shimmer: s.shimmer, pulse: s.pulse, jitter: s.jitter },
       });
 
       const imageData = offCtx.getImageData(0, 0, gifW, gifH);
@@ -399,7 +403,7 @@ export default function Editor() {
                 <div className="control-row">
                   <span className="control-label">Density</span>
                   <div className="hover-effect-pills">
-                    {['Fine', 'Normal', 'Coarse'].map((label, i) => (
+                    {['Ultra', 'Fine', 'Normal', 'Coarse'].map((label, i) => (
                       <button key={label}
                         className={`effect-pill ${settings.charSize === i ? 'active' : ''}`}
                         onClick={() => updateSetting('charSize', i)}>
@@ -408,6 +412,8 @@ export default function Editor() {
                     ))}
                   </div>
                 </div>
+                <Slider label="Glow" value={settings.glow} min={0} max={1} step={0.05}
+                  onChange={(v) => updateSetting('glow', v)} />
                 <div className="control-row">
                   <span className="control-label">Mono Tint</span>
                   <button className={`toggle-btn ${settings.tintColor ? 'active' : ''}`}
