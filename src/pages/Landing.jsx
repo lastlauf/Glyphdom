@@ -4,6 +4,53 @@ import TEMPLATES from '../lib/templates/index.js';
 import { IconLightning, IconSliders, IconHexGrid, IconPalette } from '../components/Icons.jsx';
 import { registerPreview, unregisterPreview } from '../lib/sharedLoop.js';
 
+const skullTemplate = TEMPLATES.find(t => t.name === 'Skull');
+
+function SkullCanvas() {
+  const canvasRef = useRef(null);
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !skullTemplate) return;
+
+    const params = Object.fromEntries(
+      Object.entries(skullTemplate.params).map(([k, v]) => [k, v.default])
+    );
+    const colors = { ...skullTemplate.colors };
+
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+    resize();
+    const ro = new ResizeObserver(resize);
+    ro.observe(canvas);
+
+    const inst = skullTemplate.createInstance();
+    inst.init(canvas, params, colors);
+
+    // Full-speed dedicated rAF for the hero skull
+    let raf;
+    let last = 0;
+    const tick = (ts) => {
+      const dt = last ? Math.min((ts - last) / 1000, 0.05) : 0.016;
+      last = ts;
+      inst.update(dt, params, colors);
+      inst.render(canvas.getContext('2d'), canvas.width, canvas.height, 8, 12, params, colors);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+
+    return () => {
+      cancelAnimationFrame(raf);
+      ro.disconnect();
+      if (inst.destroy) inst.destroy();
+    };
+  }, []);
+
+  return <canvas ref={canvasRef} className="skull-hero-canvas" />;
+}
+
 const SCRAMBLE_CHARS = '█▓▒░|/\\-_+';
 
 function scrambleTo(el, final, delay = 0, duration = 900) {
@@ -178,6 +225,20 @@ export default function Landing() {
             <p className="feature-desc">{f.desc}</p>
           </div>
         ))}
+      </div>
+
+      <div className="skull-showcase">
+        <div className="skull-showcase-canvas-wrap">
+          <SkullCanvas />
+        </div>
+        <div className="skull-showcase-copy">
+          <p className="skull-showcase-label">3D ASCII</p>
+          <h2 className="skull-showcase-heading">Every character<br />is a decision.</h2>
+          <p className="skull-showcase-body">
+            Depth-mapped point clouds projected in real time. Each glyph is chosen by brightness, distance, and density — no sprites, no textures, no shortcuts.
+          </p>
+          <Link to="/studio" className="cta-primary" style={{ alignSelf: 'flex-start' }}>Try in Studio</Link>
+        </div>
       </div>
 
       <div className="landing-grid-section">
