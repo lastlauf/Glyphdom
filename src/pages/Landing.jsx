@@ -150,169 +150,173 @@ function GalleryCard({ template, index, templateIndex }) {
   );
 }
 
-function MonaLisaPortrait() {
+function StarryNightPortrait() {
   const canvasRef = useRef(null);
+  const mouseRef  = useRef({ x: -1, y: -1, active: false });
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.width  = 480;
-    canvas.height = 640;
+    const W = 800, H = 560;
+    canvas.width = W; canvas.height = H;
 
-    const CHARS = ' .,:;!|i+xX#%@$&█▓▒░';
-    let time = 0;
-    let raf;
+    const CHARS = ' .,:;!|+xX#%@$█▓▒░◆●';
+    let time = 0, raf;
 
-    // Offscreen canvas for glow pass — created once
     const glowC = document.createElement('canvas');
-    glowC.width = 480; glowC.height = 640;
+    glowC.width = W; glowC.height = H;
 
-    function noise(x, y, t) {
-      return (
-        Math.sin(x * 2.7 + y * 1.3 + t * 0.12) * 0.4 +
-        Math.cos(x * 1.5 - y * 2.1 + t * 0.09) * 0.3 +
-        Math.sin((x + y) * 3.1 + t * 0.15) * 0.2 +
-        Math.cos(x * 0.9 + y * 4.3 - t * 0.07) * 0.1
-      );
-    }
+    const STARS = [
+      [0.28,0.09],[0.44,0.06],[0.56,0.13],[0.65,0.08],
+      [0.72,0.18],[0.88,0.28],[0.36,0.21],[0.51,0.25],
+      [0.18,0.16],[0.78,0.08],[0.93,0.15],[0.12,0.10],
+    ];
+
+    const onMove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      mouseRef.current = {
+        x: ((e.clientX - rect.left) / rect.width)  * W,
+        y: ((e.clientY - rect.top)  / rect.height) * H,
+        active: true,
+      };
+    };
+    const onLeave = () => { mouseRef.current = { x: -1, y: -1, active: false }; };
+    canvas.addEventListener('mousemove', onMove);
+    canvas.addEventListener('mouseleave', onLeave);
 
     function draw() {
       const ctx = canvas.getContext('2d');
-      const W = canvas.width, H = canvas.height;
       const cw = 6, ch = 9;
       const cols = Math.ceil(W / cw), rows = Math.ceil(H / ch);
 
-      ctx.fillStyle = '#0E0D06';
+      ctx.fillStyle = '#05061A';
       ctx.fillRect(0, 0, W, H);
       ctx.font = '500 7px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
 
-      const t = time;
-      const FCX = 0.478, FCY = 0.345;
+      const t  = time;
+      const m  = mouseRef.current;
+      const mC = m.active ? m.x / cw : -9999;
+      const mR = m.active ? m.y / ch : -9999;
 
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
-          const nx = (col + 0.5) / cols;
-          const ny = (row + 0.5) / rows;
-          const dx = nx - FCX;
-          const dy = ny - FCY;
+          const nx = col / cols;
+          const ny = row / rows;
 
-          // Zone detection
-          const skinDist    = (dx / 0.21) ** 2 + (dy / 0.245) ** 2;
-          const hairTopD    = (dx / 0.175) ** 2 + ((ny - 0.165) / 0.155) ** 2;
-          const leftHairD   = ((nx - 0.225) / 0.135) ** 2 + ((ny - 0.465) / 0.30) ** 2;
-          const rightHairD  = ((nx - 0.725) / 0.110) ** 2 + ((ny - 0.425) / 0.255) ** 2;
-          const neckD       = ((nx - FCX) / 0.072) ** 2 + ((ny - 0.595) / 0.095) ** 2;
-          const handsD      = ((nx - 0.50) / 0.255) ** 2 + ((ny - 0.905) / 0.085) ** 2;
-          const inDress     = ny > 0.70 || (ny > 0.625 && (nx < 0.235 || nx > 0.745));
-          const inShoulders = ny > 0.575 && ny < 0.72 && Math.abs(dx) > 0.125 && Math.abs(dx) < 0.375;
-          const leftEye     = ((nx - 0.415) / 0.033) ** 2 + ((ny - 0.345) / 0.020) ** 2 < 1;
-          const rightEye    = ((nx - 0.548) / 0.031) ** 2 + ((ny - 0.342) / 0.019) ** 2 < 1;
-          const lipsD       = ((nx - FCX + 0.006) / 0.066) ** 2 + ((ny - 0.465) / 0.022) ** 2;
+          // Mouse proximity
+          const mdx = col - mC, mdy = row - mR;
+          const mDist = Math.sqrt(mdx*mdx + mdy*mdy);
+          const mProx = m.active && mDist < 14 ? (1 - mDist/14) : 0;
+          const mPhase = mProx * 3.2;
 
-          const n  = noise(nx * 8, ny * 7, t);
-          const nn = (n + 1) * 0.5;
+          // Zones
+          const inSky = ny < 0.68;
 
-          const bgN    = noise(nx * 4, ny * 3.5, t * 0.25);
-          const bgHaze = (bgN + 1) * 0.5 * 0.65 + 0.35;
-          const leftBias  = Math.max(0, 0.5 - nx) * 1.2;
-          const rightBias = Math.max(0, nx - 0.5) * 0.8;
+          // Cypress tree (left, tall)
+          const cypW = 0.068 * (0.4 + (1-ny)*0.6);
+          const inCypress = Math.abs(nx - 0.105) < cypW && ny > 0.07;
+
+          // Village strip
+          const inVillage = ny > 0.72;
+          const inHills   = ny > 0.66 && ny < 0.73 && nx > 0.08;
+
+          // Moon
+          const moonD = ((nx-0.83)/0.065)**2 + ((ny-0.13)/0.082)**2;
+          const nearMoon = moonD < 1.0;
+
+          // Stars
+          let bestStar = Infinity;
+          for (const [sx,sy] of STARS) {
+            const d = ((nx-sx)/0.032)**2 + ((ny-sy)/0.026)**2;
+            if (d < bestStar) bestStar = d;
+          }
+          const nearStar = bestStar < 1.0;
+
+          // Sky swirl
+          const swirlT = t + mPhase;
+          const sv = (
+            Math.sin(nx*9  + ny*5  + swirlT*1.1) * 0.35 +
+            Math.sin(nx*5  - ny*8  + swirlT*0.8) * 0.30 +
+            Math.sin((nx+ny)*12 + swirlT*1.4)    * 0.20 +
+            Math.cos(nx*3  + ny*11 + swirlT*0.6) * 0.15
+          ) * 0.5 + 0.5;
 
           let r, g, b, density;
 
-          if (leftEye || rightEye) {
-            r = 48; g = 36; b = 22; density = 0.92;
-
-          } else if (lipsD < 1.0) {
-            const lv = 0.75 + nn * 0.25;
-            r = Math.round(180 * lv); g = Math.round(108 * lv); b = Math.round(58 * lv);
-            density = 0.50 + nn * 0.34;
-
-          } else if (skinDist < 1.0) {
-            const s = 0.78 + nn * 0.22;
-            r = Math.round((225 + nn * 22) * s);
-            g = Math.round((165 + nn * 18) * s);
-            b = Math.round((80  + nn * 14) * s);
-            density = 0.12 + nn * 0.34;
-
-          } else if (hairTopD < 1.0 && ny < FCY + 0.09) {
-            const hs = (Math.sin(nx * 13 + ny * 15 - t * 0.5) + 1) * 0.5;
-            r = Math.round(92 + hs * 28); g = Math.round(48 + hs * 20); b = Math.round(18 + hs * 11);
-            density = 0.66 + nn * 0.28;
-
-          } else if (leftHairD < 1.0) {
-            const hs = (Math.sin(nx * 9 + ny * 18 - t * 0.45) + 1) * 0.5;
-            r = Math.round(88 + hs * 30); g = Math.round(45 + hs * 22); b = Math.round(16 + hs * 11);
-            density = 0.62 + nn * 0.30;
-
-          } else if (rightHairD < 1.0) {
-            const hs = (Math.sin(nx * 9 + ny * 16 - t * 0.40) + 1) * 0.5;
-            r = Math.round(86 + hs * 28); g = Math.round(43 + hs * 20); b = Math.round(15 + hs * 10);
-            density = 0.60 + nn * 0.30;
-
-          } else if (neckD < 1.0) {
-            const s = 0.74 + nn * 0.24;
-            r = Math.round(210 * s); g = Math.round(155 * s); b = Math.round(70 * s);
-            density = 0.14 + nn * 0.30;
-
-          } else if (handsD < 1.0) {
-            const s = 0.68 + nn * 0.26;
-            r = Math.round(202 * s); g = Math.round(148 * s); b = Math.round(64 * s);
-            density = 0.16 + nn * 0.32;
-
-          } else if (inDress || inShoulders) {
-            const ds = (Math.sin(nx * 7 + ny * 5 + t * 0.2) + 1) * 0.5;
-            r = Math.round(30 + ds * 20 + leftBias * 8);
-            g = Math.round(32 + ds * 22 + leftBias * 6);
-            b = Math.round(18 + ds * 14);
-            density = 0.46 + nn * 0.40;
-
+          if (bestStar < 0.15) {
+            r=255; g=252; b=195; density=0.95;
+          } else if (nearStar) {
+            const gv = 1-bestStar;
+            r=Math.round(180+gv*75); g=Math.round(205+gv*47); b=Math.round(100+gv*95); density=0.30+gv*0.60;
+          } else if (nearMoon) {
+            const mv=1-moonD; r=Math.round(235+mv*20); g=Math.round(238+mv*17); b=Math.round(170+mv*40); density=0.38+mv*0.52;
+          } else if (inCypress) {
+            const tv=(Math.sin(nx*42+ny*28-t*0.4)+1)*0.5;
+            r=Math.round(6+tv*20); g=Math.round(20+tv*30); b=Math.round(8+tv*18); density=0.70+tv*0.24;
+          } else if (inVillage) {
+            const bldgH=0.72+(Math.sin(Math.floor(nx*14)*7.3)*0.5+0.5)*0.12;
+            if (ny>bldgH) {
+              const wv=(Math.sin(nx*20+ny*16)+1)*0.5;
+              r=Math.round(150+wv*70); g=Math.round(100+wv*55); b=Math.round(20+wv*45); density=0.50+wv*0.32;
+            } else {
+              r=10; g=16; b=52; density=0.20+sv*0.28;
+            }
+          } else if (inHills) {
+            const hv=(Math.sin(nx*9+ny*5-t*0.07)+1)*0.5;
+            r=Math.round(10+hv*22); g=Math.round(38+hv*45); b=Math.round(50+hv*60); density=0.48+hv*0.38;
           } else {
-            const haze = Math.max(0.1, bgHaze - leftBias * 0.3 + rightBias * 0.1);
-            r = Math.round(108 + haze * 72 - leftBias * 25);
-            g = Math.round(105 + haze * 62 - leftBias * 12);
-            b = Math.round(38  + haze * 35 + rightBias * 12);
-            density = 0.28 + haze * 0.44;
+            // Sky
+            const depth=1-ny;
+            const boost=mProx*0.4;
+            r=Math.round( 6+sv*30+depth*20+boost*50);
+            g=Math.round(28+sv*60+depth*40+boost*80);
+            b=Math.round(85+sv*95+depth*45+boost*40);
+            density=0.32+sv*0.48+mProx*0.08;
           }
 
-          r = Math.min(255, Math.max(0, r));
-          g = Math.min(255, Math.max(0, g));
-          b = Math.min(255, Math.max(0, b));
+          r=Math.min(255,Math.max(0,r));
+          g=Math.min(255,Math.max(0,g));
+          b=Math.min(255,Math.max(0,b));
 
-          const ci   = Math.min(CHARS.length - 1, Math.floor(density * CHARS.length));
-          const char = CHARS[ci];
-          if (char === ' ') continue;
+          const ci=Math.min(CHARS.length-1,Math.floor(density*CHARS.length));
+          const ch2=CHARS[ci];
+          if (ch2===' ') continue;
 
-          ctx.fillStyle = `rgb(${r},${g},${b})`;
-          ctx.fillText(char, col * cw + cw / 2, row * ch + ch - 1);
+          ctx.fillStyle=`rgb(${r},${g},${b})`;
+          ctx.fillText(ch2, col*cw+cw/2, row*ch+ch-1);
         }
       }
 
-      // Subtle glow/bloom pass
-      const gCtx = glowC.getContext('2d');
-      gCtx.clearRect(0, 0, 480, 640);
-      gCtx.filter = 'blur(4px)';
-      gCtx.drawImage(canvas, 0, 0);
-      gCtx.filter = 'none';
-      ctx.globalCompositeOperation = 'lighter';
-      ctx.globalAlpha = 0.10;
-      ctx.drawImage(glowC, 0, 0);
-      ctx.globalAlpha = 1;
-      ctx.globalCompositeOperation = 'source-over';
+      // glow pass
+      const gCtx=glowC.getContext('2d');
+      gCtx.clearRect(0,0,W,H);
+      gCtx.filter='blur(4px)';
+      gCtx.drawImage(canvas,0,0);
+      gCtx.filter='none';
+      ctx.globalCompositeOperation='lighter';
+      ctx.globalAlpha=0.12;
+      ctx.drawImage(glowC,0,0);
+      ctx.globalAlpha=1;
+      ctx.globalCompositeOperation='source-over';
 
-      time += 0.016 * 0.16;
+      time += 0.016 * 0.22;
       raf = requestAnimationFrame(draw);
     }
 
     raf = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(raf);
+    return () => {
+      cancelAnimationFrame(raf);
+      canvas.removeEventListener('mousemove', onMove);
+      canvas.removeEventListener('mouseleave', onLeave);
+    };
   }, []);
 
   return <canvas ref={canvasRef} className="vangogh-canvas" />;
 }
 
 // Lightweight ASCII background renderer for the hero
-function useHeroBgCanvas(canvasRef) {
+function useHeroBgCanvas(canvasRef, mouseRef) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -338,16 +342,33 @@ function useHeroBgCanvas(canvasRef) {
       ctx.font = `300 ${ch - 6}px "JetBrains Mono", monospace`;
       ctx.textAlign = 'center';
 
+      // Convert mouse page coords to canvas-local cell coords
+      const m = mouseRef ? mouseRef.current : null;
+      let mCol = -9999, mRow = -9999;
+      if (m && m.active) {
+        const rect = canvas.getBoundingClientRect();
+        const localX = m.x - rect.left;
+        const localY = m.y - rect.top;
+        mCol = localX / cw;
+        mRow = localY / ch;
+      }
+
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
           const nx = c / cols * 4 + time * 0.5;
           const ny = r / rows * 3 + time * 0.3;
-          const wave = Math.sin(nx * 1.5 + ny * 2 + time) * 0.5
-            + Math.sin(nx * 0.7 - ny + time * 1.3) * 0.3
-            + Math.sin((nx + ny) * 2.5 + time * 0.6) * 0.2;
+
+          // Mouse proximity disturbance
+          const mdx = c - mCol, mdy = r - mRow;
+          const dist = Math.sqrt(mdx * mdx + mdy * mdy);
+          const mouseInfluence = dist < 10 ? (1 - dist / 10) * 1.8 : 0;
+
+          const wave = Math.sin(nx * 1.5 + ny * 2 + time + mouseInfluence) * 0.5
+            + Math.sin(nx * 0.7 - ny + time * 1.3 + mouseInfluence * 0.6) * 0.3
+            + Math.sin((nx + ny) * 2.5 + time * 0.6 + mouseInfluence * 0.4) * 0.2;
           const v = (wave + 1) * 0.5;
           const idx = Math.floor(v * (CHARS.length - 1));
-          const alpha = 0.04 + v * 0.1;
+          const alpha = 0.04 + v * 0.1 + mouseInfluence * 0.15;
           ctx.fillStyle = `rgba(17,17,16,${alpha})`;
           ctx.fillText(CHARS[idx], c * cw + cw / 2, r * ch + ch - 4);
         }
@@ -362,6 +383,7 @@ function useHeroBgCanvas(canvasRef) {
 export default function Landing() {
   const headRef = useRef(null);
   const heroBgRef = useRef(null);
+  const heroMouseRef = useRef({ x: -1, y: -1, active: false });
 
   const GAME_NAMES = new Set(['Pac-Man','Space Invaders','Tetris','Snake','Nyan Cat','Game of Life','Mario','Smiley','Star Wars']);
   const AMBIENT_TEMPLATES = TEMPLATES
@@ -372,11 +394,23 @@ export default function Landing() {
     scrambleTo(headRef.current, 'Make text move.', 500, 1200);
   }, []);
 
-  useHeroBgCanvas(heroBgRef);
+  useHeroBgCanvas(heroBgRef, heroMouseRef);
+
+  const handleHeroMouseMove = (e) => {
+    heroMouseRef.current = { x: e.clientX, y: e.clientY, active: true };
+  };
+
+  const handleHeroMouseLeave = () => {
+    heroMouseRef.current = { x: -1, y: -1, active: false };
+  };
 
   return (
     <div className="landing">
-      <div className="landing-hero">
+      <div
+        className="landing-hero"
+        onMouseMove={handleHeroMouseMove}
+        onMouseLeave={handleHeroMouseLeave}
+      >
         <canvas ref={heroBgRef} className="hero-bg-canvas" aria-hidden="true" />
         <div className="landing-headline-wrap">
           <h1 ref={headRef} className="landing-headline">██████████████</h1>
@@ -438,7 +472,7 @@ export default function Landing() {
       {/* Gallery CTA — Van Gogh portrait */}
       <div className="gallery-portrait-cta">
         <div className="gallery-portrait-canvas-wrap">
-          <MonaLisaPortrait />
+          <StarryNightPortrait />
         </div>
         <div className="gallery-portrait-copy">
           <p className="gallery-portrait-label">Gallery</p>
