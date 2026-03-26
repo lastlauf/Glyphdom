@@ -1,5 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600;700&family=Manrope:wght@400;500;600;700;800&display=swap');
 
+@font-face {
+  font-family: 'Thunder';
+  src: url('/Thunder-ExtraBoldLCItalic.ttf') format('truetype');
+  font-weight: 800;
+  font-style: italic;
+  font-display: swap;
+}
+
 /* ═══════════════════════════════════════════
    TOKENS
 ═══════════════════════════════════════════ */
@@ -22,6 +30,7 @@
   --canvas-bg:   #0A0A0B;
 
   --font-display: 'Manrope', system-ui, sans-serif;
+  --font-thunder: 'Thunder', 'Manrope', sans-serif;
   --font-mono:    'JetBrains Mono', 'Courier New', monospace;
 
   /* Type scale */
@@ -98,10 +107,11 @@ input { font-family: inherit; }
 }
 
 .logo-text {
-  font-family: var(--font-display);
-  font-size: var(--text-medium);
+  font-family: var(--font-thunder);
+  font-size: 1.4rem;
   font-weight: 800;
-  letter-spacing: -0.02em;
+  font-style: italic;
+  letter-spacing: 0.01em;
   color: var(--text);
   transition: color var(--dur-micro) var(--ease-silk);
 }
@@ -385,10 +395,11 @@ input { font-family: inherit; }
 .studio-controls-panel .section-label { color: rgba(240,238,233,0.35); }
 
 .studio-logo {
-  font-family: var(--font-mono);
-  font-size: var(--text-small);
-  font-weight: 700;
-  letter-spacing: 0.1em;
+  font-family: var(--font-thunder);
+  font-size: 1.4rem;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: 0.01em;
   color: rgba(240, 238, 233, 0.9);
 }
 
@@ -845,11 +856,12 @@ input { font-family: inherit; }
 
 .landing-headline-wrap { overflow: hidden; margin-bottom: var(--sp-5); position: relative; z-index: 1; }
 .landing-headline {
-  font-family: var(--font-display);
+  font-family: var(--font-thunder);
   font-size: var(--text-hero);
   font-weight: 800;
-  letter-spacing: -0.04em;
-  line-height: 0.92;
+  font-style: italic;
+  letter-spacing: -0.01em;
+  line-height: 0.9;
   color: var(--text);
   animation: clipReveal var(--dur-cinematic) var(--ease-expo-out) both;
   animation-delay: 400ms;
@@ -939,11 +951,12 @@ input { font-family: inherit; }
 }
 
 .skull-showcase-heading {
-  font-family: var(--font-display);
-  font-size: clamp(2rem, 3.5vw, 3.5rem);
+  font-family: var(--font-thunder);
+  font-size: clamp(2.4rem, 4vw, 4.2rem);
   font-weight: 800;
-  line-height: 1.08;
-  letter-spacing: -0.03em;
+  font-style: italic;
+  line-height: 1;
+  letter-spacing: -0.01em;
   color: var(--text);
   margin: 0;
 }
@@ -1001,11 +1014,12 @@ input { font-family: inherit; }
 }
 
 .gallery-portrait-heading {
-  font-family: var(--font-display);
-  font-size: clamp(2.2rem, 3.2vw, 3.8rem);
+  font-family: var(--font-thunder);
+  font-size: clamp(2.6rem, 3.8vw, 4.4rem);
   font-weight: 800;
-  line-height: 1.06;
-  letter-spacing: -0.03em;
+  font-style: italic;
+  line-height: 0.96;
+  letter-spacing: -0.01em;
   color: #FFFFFF;
   margin: 0;
 }
@@ -1051,9 +1065,11 @@ input { font-family: inherit; }
 }
 
 .landing-grid-title {
-  font-size: var(--text-xl);
+  font-family: var(--font-thunder);
+  font-size: clamp(1.8rem, 2.5vw, 2.4rem);
   font-weight: 800;
-  letter-spacing: -0.03em;
+  font-style: italic;
+  letter-spacing: -0.01em;
   color: var(--text);
   line-height: 1;
 }
@@ -1164,9 +1180,11 @@ input { font-family: inherit; }
   justify-content: space-between;
 }
 .gallery-title {
+  font-family: var(--font-thunder);
   font-size: var(--text-2xl);
   font-weight: 800;
-  letter-spacing: -0.04em;
+  font-style: italic;
+  letter-spacing: -0.01em;
   line-height: 1;
   color: var(--text);
 }
