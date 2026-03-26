@@ -231,27 +231,33 @@ input { font-family: inherit; }
 .template-strip-scroll::-webkit-scrollbar { width: 3px; }
 .template-strip-scroll::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
 
-/* Controls toggle — lives on left edge of the strip */
+/* Controls toggle — fixed, always visible, slides when panel opens */
 .controls-toggle {
-  position: absolute;
+  position: fixed;
   top: 50%;
-  left: -24px;
+  right: 192px;
   transform: translateY(-50%);
-  width: 24px; height: 48px;
-  background: rgba(12, 12, 14, 0.92);
+  width: 28px; height: 52px;
+  background: rgba(12, 12, 14, 0.95);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(255,255,255,0.07);
+  border: 1px solid rgba(255,255,255,0.1);
   border-right: none;
-  border-radius: 6px 0 0 6px;
-  color: rgba(240,238,233,0.4);
+  border-radius: 8px 0 0 8px;
+  color: rgba(240,238,233,0.5);
   display: flex; align-items: center; justify-content: center;
   cursor: pointer;
-  transition: color var(--dur-micro) var(--ease-silk), background var(--dur-micro) var(--ease-silk);
-  z-index: 31;
+  transition:
+    right var(--dur-base) var(--ease-expo-out),
+    color var(--dur-micro) var(--ease-silk),
+    background var(--dur-micro) var(--ease-silk);
+  z-index: 35;
 }
-.controls-toggle:hover,
-.controls-toggle.is-open { color: rgba(240,238,233,0.9); }
-.controls-toggle.is-open { background: rgba(22, 22, 26, 0.95); }
+.controls-toggle:hover { color: rgba(240,238,233,0.95); background: rgba(22,22,26,0.98); }
+.controls-toggle.is-open {
+  right: 464px; /* 192px strip + 272px panel */
+  color: rgba(240,238,233,0.85);
+  background: rgba(22, 22, 26, 0.98);
+}
 
 /* Override mini-preview styles inside strip — set below base rules for guaranteed override */
 
@@ -728,6 +734,49 @@ input { font-family: inherit; }
   color: var(--surface);
   border-color: var(--text);
 }
+/* ─── Strength slider ─────────────────── */
+.strength-slider-wrap {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  flex: 1;
+  justify-content: flex-end;
+}
+.strength-slider {
+  flex: 1;
+  max-width: 120px;
+  height: 3px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: rgba(255,255,255,0.12);
+  border-radius: 2px;
+  outline: none;
+  cursor: ew-resize;
+}
+.strength-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid rgba(14,14,16,0.8);
+  cursor: grab;
+}
+.strength-slider::-moz-range-thumb {
+  width: 13px; height: 13px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid rgba(14,14,16,0.8);
+  cursor: grab;
+}
+.strength-value {
+  font-family: var(--font-mono);
+  font-size: var(--text-tiny);
+  font-weight: 600;
+  color: rgba(240,238,233,0.6);
+  min-width: 28px;
+  text-align: right;
+}
+
 .toggle-btn {
   padding: 4px 14px;
   font-family: var(--font-mono);
@@ -1530,7 +1579,9 @@ input { font-family: inherit; }
   .studio-template-strip .mini-preview { min-width: 96px; height: auto; padding: var(--sp-1); }
   .studio-template-strip .mini-preview-canvas-wrap { width: 100%; height: 60px; }
   .studio-template-strip .mini-preview-canvas-wrap canvas { height: 60px !important; }
-  .controls-toggle { top: -24px; left: 50%; right: auto; transform: translateX(-50%); width: 48px; height: 24px; border-radius: 6px 6px 0 0; border-bottom: none; }
+  /* On mobile, toggle sits above the bottom strip, centered */
+  .controls-toggle { bottom: 96px; top: auto; right: auto; left: 50%; transform: translateX(-50%); width: 52px; height: 28px; border-radius: 8px 8px 0 0; border-bottom: none; border-right: 1px solid rgba(255,255,255,0.1); transition: bottom var(--dur-base) var(--ease-expo-out), color var(--dur-micro), background var(--dur-micro); }
+  .controls-toggle.is-open { bottom: calc(88px + 55vh); right: auto; left: 50%; }
   .studio-controls-panel { top: auto; right: 0; left: 0; bottom: 88px; width: 100%; height: 55vh; transform: translateY(100%); }
   .studio-controls-panel.is-open { transform: translateY(0); }
 }

@@ -4,11 +4,11 @@ const PLASMA_CHARS = ' .·:;=+*!|xX#%@$&█▓▒░◆◇○●';
 function createInstance() {
   const s = {
     time: 0,
-    mouseX: -1, mouseY: -1, mouseActive: false, hoverEffect: 'ripple'
+    mouseX: -1, mouseY: -1, mouseActive: false, hoverEffect: 'ripple', strength: 1
   };
   return {
-    setMouse(x, y, active, effect) {
-      s.mouseX = x; s.mouseY = y; s.mouseActive = active; s.hoverEffect = effect;
+    setMouse(x, y, active, effect, strength = 1) {
+      s.mouseX = x; s.mouseY = y; s.mouseActive = active; s.hoverEffect = effect; s.strength = strength;
     },
     init(canvas, params, colors) { s.time = 0; },
     update(dt, params) { s.time += dt * params.speed; },
@@ -30,18 +30,20 @@ function createInstance() {
 
           // Mouse distortion
           let distort = 0;
+          const str = s.strength;
           if (s.mouseActive && s.hoverEffect !== 'none') {
             const dx = col - mCol;
             const dy = row - mRow;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 12) {
-              const prox = 1 - dist / 12;
+            const radius = 12 * Math.sqrt(str);
+            if (dist < radius) {
+              const prox = 1 - dist / radius;
               if (s.hoverEffect === 'ripple') {
-                distort = Math.sin(dist * 0.8 - t * 6) * prox * 2;
+                distort = Math.sin(dist * 0.8 - t * 6) * prox * 2 * str;
               } else if (s.hoverEffect === 'repel' || s.hoverEffect === 'spotlight') {
-                distort = prox * prox * 3;
+                distort = prox * prox * 3 * str;
               } else if (s.hoverEffect === 'glitch') {
-                distort = Math.random() * prox * 4;
+                distort = Math.random() * prox * 4 * str;
               }
             }
           }
@@ -66,11 +68,12 @@ function createInstance() {
             const dx = col - mCol;
             const dy = row - mRow;
             const dist = Math.sqrt(dx * dx + dy * dy);
-            if (dist < 10 && dist > 0) {
-              const prox = 1 - dist / 10;
+            const repelRadius = 10 * Math.sqrt(str);
+            if (dist < repelRadius && dist > 0) {
+              const prox = 1 - dist / repelRadius;
               const angle = Math.atan2(dy, dx);
-              drawX += Math.cos(angle) * prox * prox * 12;
-              drawY += Math.sin(angle) * prox * prox * 12;
+              drawX += Math.cos(angle) * prox * prox * 12 * str;
+              drawY += Math.sin(angle) * prox * prox * 12 * str;
             }
           }
 

@@ -1,7 +1,7 @@
 import { useRef, useEffect, useCallback } from 'react';
 import useAnimationLoop from '../hooks/useAnimationLoop';
 
-export default function AsciiCanvas({ template, params, colors, onStats, hoverEffect = 'ripple', glowEnabled = true }) {
+export default function AsciiCanvas({ template, params, colors, onStats, hoverEffect = 'ripple', hoverStrength = 1, glowEnabled = true }) {
   const canvasRef = useRef(null);
   const glowCanvasRef = useRef(null);
   const instanceRef = useRef(null);
@@ -10,11 +10,13 @@ export default function AsciiCanvas({ template, params, colors, onStats, hoverEf
   const statsThrottleRef = useRef(0);
   const mouseRef = useRef({ x: -1, y: -1, active: false });
   const hoverEffectRef = useRef(hoverEffect);
+  const hoverStrengthRef = useRef(hoverStrength);
   const glowEnabledRef = useRef(glowEnabled);
 
   paramsRef.current = params;
   colorsRef.current = colors;
   hoverEffectRef.current = hoverEffect;
+  hoverStrengthRef.current = hoverStrength;
   glowEnabledRef.current = glowEnabled;
 
   // Track mouse
@@ -83,7 +85,7 @@ export default function AsciiCanvas({ template, params, colors, onStats, hoverEf
     // Pass mouse and hover effect to the instance if it supports it
     const mouse = mouseRef.current;
     if (inst.setMouse) {
-      inst.setMouse(mouse.x, mouse.y, mouse.active, hoverEffectRef.current);
+      inst.setMouse(mouse.x, mouse.y, mouse.active, hoverEffectRef.current, hoverStrengthRef.current);
     }
 
     inst.update(dt, paramsRef.current, colorsRef.current);
@@ -111,10 +113,11 @@ export default function AsciiCanvas({ template, params, colors, onStats, hoverEf
     // Cursor hover overlay — draw a subtle interactive zone
     if (mouse.active) {
       const effect = hoverEffectRef.current;
-      const radius = 80;
+      const strength = hoverStrengthRef.current;
+      const radius = 80 * strength;
       if (effect === 'spotlight') {
         const grad = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, radius);
-        grad.addColorStop(0, 'rgba(255,255,255,0.06)');
+        grad.addColorStop(0, `rgba(255,255,255,${0.06 * strength})`);
         grad.addColorStop(1, 'rgba(255,255,255,0)');
         ctx.fillStyle = grad;
         ctx.fillRect(mouse.x - radius, mouse.y - radius, radius * 2, radius * 2);

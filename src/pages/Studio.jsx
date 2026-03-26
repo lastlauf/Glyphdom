@@ -40,6 +40,7 @@ export default function Studio() {
   const [hoverEffect, setHoverEffect] = useState('ripple');
   const [glowEnabled, setGlowEnabled] = useState(true);
   const [controlsOpen, setControlsOpen] = useState(false);
+  const [cursorStrength, setCursorStrength] = useState(1.0);
 
   const template = TEMPLATES[activeIdx];
   const { params, colors, setParam, setColor, setColors, resetParams, randomizeParams } = useParams(template);
@@ -65,6 +66,7 @@ export default function Studio() {
         colors={colors}
         onStats={handleStats}
         hoverEffect={hoverEffect}
+        hoverStrength={cursorStrength}
         glowEnabled={glowEnabled}
       />
       <div className="canvas-scanlines" aria-hidden="true" />
@@ -131,6 +133,21 @@ export default function Studio() {
                   ))}
                 </div>
               </div>
+              {hoverEffect !== 'none' && (
+                <div className="ctrl-row">
+                  <span className="ctrl-row-label">Strength</span>
+                  <div className="strength-slider-wrap">
+                    <input
+                      type="range"
+                      className="strength-slider"
+                      min={0.1} max={3} step={0.05}
+                      value={cursorStrength}
+                      onChange={e => setCursorStrength(parseFloat(e.target.value))}
+                    />
+                    <span className="strength-value">{cursorStrength.toFixed(1)}×</span>
+                  </div>
+                </div>
+              )}
               <div className="ctrl-row">
                 <span className="ctrl-row-label">Glow</span>
                 <button className={`toggle-btn ${glowEnabled ? 'active' : ''}`}
@@ -160,22 +177,22 @@ export default function Studio() {
         </div>
       </aside>
 
+      {/* Controls toggle — fixed, always visible, slides with panel */}
+      <button
+        className={`controls-toggle ${controlsOpen ? 'is-open' : ''}`}
+        onClick={() => setControlsOpen(v => !v)}
+        title={controlsOpen ? 'Hide controls' : 'Show controls'}
+      >
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+          <path
+            d={controlsOpen ? 'M7 1L3 5L7 9' : 'M3 1L7 5L3 9'}
+            stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+
       {/* Template strip — always visible on far right */}
       <aside className="studio-template-strip">
-        {/* Controls toggle — sits on left edge of template strip */}
-        <button
-          className={`controls-toggle ${controlsOpen ? 'is-open' : ''}`}
-          onClick={() => setControlsOpen(v => !v)}
-          title={controlsOpen ? 'Hide controls' : 'Show controls'}
-        >
-          <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-            <path
-              d={controlsOpen ? 'M7 1L3 5L7 9' : 'M3 1L7 5L3 9'}
-              stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"
-            />
-          </svg>
-        </button>
-
         <div className="template-strip-scroll">
           {TEMPLATES.map((tmpl, idx) => (
             <MiniPreview
