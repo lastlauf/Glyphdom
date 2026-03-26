@@ -253,37 +253,7 @@ input { font-family: inherit; }
 .controls-toggle.is-open { color: rgba(240,238,233,0.9); }
 .controls-toggle.is-open { background: rgba(22, 22, 26, 0.95); }
 
-/* Override mini-preview styles inside strip */
-.studio-template-strip .mini-preview {
-  flex-direction: column;
-  align-items: stretch;
-  height: auto;
-  gap: var(--sp-1);
-  padding: var(--sp-2) var(--sp-2) var(--sp-2);
-  background: rgba(255,255,255,0.04);
-  border-color: rgba(255,255,255,0.07);
-}
-.studio-template-strip .mini-preview:hover {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.15);
-  transform: none;
-}
-.studio-template-strip .mini-preview.active {
-  background: rgba(255,255,255,0.1);
-  border-color: rgba(255,255,255,0.3);
-}
-.studio-template-strip .mini-preview-canvas-wrap {
-  width: 100%;
-  height: 96px;
-  flex-shrink: 0;
-}
-.studio-template-strip .mini-preview-canvas-wrap canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-.studio-template-strip .mini-preview-label { color: rgba(240,238,233,0.5); font-size: 11px; text-align: center; }
-.studio-template-strip .mini-preview.active .mini-preview-label { color: rgba(240,238,233,0.9); }
-.studio-template-strip .mini-preview-active-dot { display: none; }
+/* Override mini-preview styles inside strip — set below base rules for guaranteed override */
 
 /* ─── Controls panel — slides out from behind strip ── */
 .studio-controls-panel {
@@ -564,6 +534,25 @@ input { font-family: inherit; }
 .mini-preview:hover .mini-preview-label { color: var(--text); }
 .mini-preview.active { border-color: var(--text); background: var(--surface); }
 .mini-preview.active .mini-preview-label { color: var(--text); font-weight: 700; }
+
+/* Strip overrides — placed after base rules so cascade is guaranteed */
+.studio-template-strip .mini-preview {
+  flex-direction: column;
+  align-items: stretch;
+  height: auto;
+  overflow: visible;
+  gap: var(--sp-1);
+  padding: var(--sp-2);
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.07);
+}
+.studio-template-strip .mini-preview:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.15); transform: none; }
+.studio-template-strip .mini-preview.active { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
+.studio-template-strip .mini-preview-canvas-wrap { width: 100%; height: 108px; flex-shrink: 0; overflow: hidden; }
+.studio-template-strip .mini-preview-canvas-wrap canvas { width: 100% !important; height: 108px !important; display: block; }
+.studio-template-strip .mini-preview-label { color: rgba(240,238,233,0.5); font-size: 11px; text-align: center; }
+.studio-template-strip .mini-preview.active .mini-preview-label { color: rgba(240,238,233,0.9); }
+.studio-template-strip .mini-preview-active-dot { display: none; }
 
 /* ─── SLIDERS ──────────────────────────── */
 .params-list { display: flex; flex-direction: column; gap: var(--sp-4); }
@@ -1538,9 +1527,9 @@ input { font-family: inherit; }
   /* Mobile: template strip on bottom, controls slide up */
   .studio-template-strip { top: auto; left: 0; right: 0; bottom: 0; width: 100%; height: 88px; border-left: none; border-top: 1px solid rgba(255,255,255,0.07); flex-direction: row; }
   .template-strip-scroll { flex-direction: row; padding: var(--sp-2); gap: var(--sp-2); overflow-x: auto; overflow-y: hidden; }
-  .studio-template-strip .mini-preview { min-width: 100px; height: auto; flex-direction: column; }
+  .studio-template-strip .mini-preview { min-width: 96px; height: auto; padding: var(--sp-1); }
   .studio-template-strip .mini-preview-canvas-wrap { width: 100%; height: 60px; }
-  .studio-template-strip .mini-preview-active-dot { display: none; }
+  .studio-template-strip .mini-preview-canvas-wrap canvas { height: 60px !important; }
   .controls-toggle { top: -24px; left: 50%; right: auto; transform: translateX(-50%); width: 48px; height: 24px; border-radius: 6px 6px 0 0; border-bottom: none; }
   .studio-controls-panel { top: auto; right: 0; left: 0; bottom: 88px; width: 100%; height: 55vh; transform: translateY(100%); }
   .studio-controls-panel.is-open { transform: translateY(0); }

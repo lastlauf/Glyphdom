@@ -24,8 +24,8 @@ export default function MiniPreview({ template, active, onClick }) {
 
     const setup = () => {
       // Use fixed dimensions — don't rely on offsetWidth which may be 0 during layout
-      canvas.width = 120;
-      canvas.height = 72;
+      canvas.width = 176;
+      canvas.height = 108;
 
       const inst = template.createInstance();
       instRef.current = inst;
