@@ -160,27 +160,33 @@ function StarryNightPortrait() {
     const W = 800, H = 560;
     canvas.width = W; canvas.height = H;
 
-    const CHARS = ' .,:;!|+xX#%@$█▓▒░◆●';
+    const CHARS = ' .,:;!|+*xX#%@$█▓▒░◆●';
     let time = 0, raf;
-
     const glowC = document.createElement('canvas');
     glowC.width = W; glowC.height = H;
 
-    const STARS = [
-      [0.28,0.09],[0.44,0.06],[0.56,0.13],[0.65,0.08],
-      [0.72,0.18],[0.88,0.28],[0.36,0.21],[0.51,0.25],
-      [0.18,0.16],[0.78,0.08],[0.93,0.15],[0.12,0.10],
+    // Major glowing orbs: [nx, ny, radius_scale, is_moon]
+    const ORBS = [
+      [0.40, 0.37, 1.0, false],  // big swirl center star
+      [0.54, 0.22, 0.75, false],
+      [0.27, 0.30, 0.7, false],
+      [0.64, 0.15, 0.65, false],
+      [0.18, 0.22, 0.55, false],
+      [0.08, 0.28, 0.5, false],
+      [0.72, 0.35, 0.6, false],
+      [0.48, 0.10, 0.5, false],
+      [0.875, 0.14, 1.4, true],  // moon — large, orange
     ];
 
     const onMove = (e) => {
       const rect = canvas.getBoundingClientRect();
       mouseRef.current = {
-        x: ((e.clientX - rect.left) / rect.width)  * W,
-        y: ((e.clientY - rect.top)  / rect.height) * H,
+        x: ((e.clientX - rect.left) / rect.width) * W,
+        y: ((e.clientY - rect.top) / rect.height) * H,
         active: true,
       };
     };
-    const onLeave = () => { mouseRef.current = { x: -1, y: -1, active: false }; };
+    const onLeave = () => { mouseRef.current = { x:-1, y:-1, active:false }; };
     canvas.addEventListener('mousemove', onMove);
     canvas.addEventListener('mouseleave', onLeave);
 
@@ -189,13 +195,13 @@ function StarryNightPortrait() {
       const cw = 6, ch = 9;
       const cols = Math.ceil(W / cw), rows = Math.ceil(H / ch);
 
-      ctx.fillStyle = '#05061A';
+      ctx.fillStyle = '#080B2A';
       ctx.fillRect(0, 0, W, H);
       ctx.font = '500 7px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
 
-      const t  = time;
-      const m  = mouseRef.current;
+      const t = time;
+      const m = mouseRef.current;
       const mC = m.active ? m.x / cw : -9999;
       const mR = m.active ? m.y / ch : -9999;
 
@@ -207,100 +213,141 @@ function StarryNightPortrait() {
           // Mouse proximity
           const mdx = col - mC, mdy = row - mR;
           const mDist = Math.sqrt(mdx*mdx + mdy*mdy);
-          const mProx = m.active && mDist < 14 ? (1 - mDist/14) : 0;
-          const mPhase = mProx * 3.2;
+          const mProx = m.active && mDist < 12 ? (1 - mDist/12) : 0;
+          const mTimeBoost = mProx * 4;
 
-          // Zones
-          const inSky = ny < 0.68;
-
-          // Cypress tree (left, tall)
-          const cypW = 0.068 * (0.4 + (1-ny)*0.6);
-          const inCypress = Math.abs(nx - 0.105) < cypW && ny > 0.07;
-
-          // Village strip
-          const inVillage = ny > 0.72;
-          const inHills   = ny > 0.66 && ny < 0.73 && nx > 0.08;
-
-          // Moon
-          const moonD = ((nx-0.83)/0.065)**2 + ((ny-0.13)/0.082)**2;
-          const nearMoon = moonD < 1.0;
-
-          // Stars
-          let bestStar = Infinity;
-          for (const [sx,sy] of STARS) {
-            const d = ((nx-sx)/0.032)**2 + ((ny-sy)/0.026)**2;
-            if (d < bestStar) bestStar = d;
+          // ── Find nearest orb ──────────────────────
+          let bestOrbBright = 0, bestOrbR = 0, bestOrbG = 0, bestOrbB = 0;
+          let isMoonPixel = false;
+          for (const [sx, sy, rs, isMoon] of ORBS) {
+            const baseR = isMoon ? 0.10 : 0.065;
+            const orbR = baseR * rs;
+            const dx = (nx - sx) / orbR;
+            const dy = (ny - sy) / (orbR * 0.85);
+            const d = Math.sqrt(dx*dx + dy*dy);
+            if (d < 1.8) {
+              const glow = Math.max(0, 1 - d/1.8);
+              const boost = glow * (1 + mProx * 0.5);
+              if (boost > bestOrbBright) {
+                bestOrbBright = boost;
+                isMoonPixel = isMoon;
+                if (isMoon) {
+                  // Orange-gold moon
+                  if (d < 0.25)      { bestOrbR=255; bestOrbG=210; bestOrbB=100; }
+                  else if (d < 0.55) { bestOrbR=255; bestOrbG=175; bestOrbB=40; }
+                  else if (d < 0.90) { bestOrbR=255; bestOrbG=220; bestOrbB=120; }
+                  else               { bestOrbR=220; bestOrbG=210; bestOrbB=160; }
+                } else {
+                  // White-yellow star
+                  if (d < 0.15)      { bestOrbR=255; bestOrbG=255; bestOrbB=240; }
+                  else if (d < 0.45) { bestOrbR=255; bestOrbG=238; bestOrbB=120; }
+                  else if (d < 0.85) { bestOrbR=240; bestOrbG=205; bestOrbB=60; }
+                  else               { bestOrbR=180; bestOrbG=175; bestOrbB=120; }
+                }
+              }
+            }
           }
-          const nearStar = bestStar < 1.0;
 
-          // Sky swirl
-          const swirlT = t + mPhase;
-          const sv = (
-            Math.sin(nx*9  + ny*5  + swirlT*1.1) * 0.35 +
-            Math.sin(nx*5  - ny*8  + swirlT*0.8) * 0.30 +
-            Math.sin((nx+ny)*12 + swirlT*1.4)    * 0.20 +
-            Math.cos(nx*3  + ny*11 + swirlT*0.6) * 0.15
-          ) * 0.5 + 0.5;
+          // ── Cypress tree ─────────────────────────
+          const cypX = 0.105;
+          const cypW = (0.038 + (ny < 0.5 ? (0.5-ny)*0.06 : (ny-0.5)*0.04)) * (0.5 + (1-ny)*0.5);
+          const inCypress = Math.abs(nx - cypX) < cypW && ny > 0.04 && ny < 0.83;
 
+          // ── Village ───────────────────────────────
+          const inVillage = ny > 0.82;
+
+          // ── Mountains / hills ─────────────────────
+          const hill1 = 0.68 + Math.sin(nx * 6.2 + 1.1) * 0.04 + Math.cos(nx * 3.7) * 0.03;
+          const hill2 = 0.72 + Math.sin(nx * 4.8 - 0.8) * 0.035 + Math.cos(nx * 7.1) * 0.025;
+          const inHills = ny > Math.min(hill1, hill2) && ny < 0.82;
+
+          // ── Sky swirl ─────────────────────────────
+          // Spiral emanating from swirl center (0.42, 0.37)
+          const scx = 0.42, scy = 0.37;
+          const sAngle = Math.atan2((ny - scy) * 1.2, (nx - scx));
+          const sRadius = Math.sqrt(((nx-scx)*1.5)**2 + (ny-scy)**2) * 10;
+          const swirl1 = Math.sin(sRadius - sAngle * 1.5 + (t + mTimeBoost) * 1.0) * 0.5 + 0.5;
+          const swirl2 = Math.sin(nx*7 + ny*5 + (t + mTimeBoost)*0.8) * 0.35
+                       + Math.sin(nx*4 - ny*9 + (t + mTimeBoost)*1.2) * 0.30
+                       + Math.sin((nx+ny)*11 + (t + mTimeBoost)*0.6) * 0.20;
+          const sv = swirl1 * 0.6 + (swirl2 * 0.5 + 0.5) * 0.4;
+
+          // ── Assign color ──────────────────────────
           let r, g, b, density;
 
-          if (bestStar < 0.15) {
-            r=255; g=252; b=195; density=0.95;
-          } else if (nearStar) {
-            const gv = 1-bestStar;
-            r=Math.round(180+gv*75); g=Math.round(205+gv*47); b=Math.round(100+gv*95); density=0.30+gv*0.60;
-          } else if (nearMoon) {
-            const mv=1-moonD; r=Math.round(235+mv*20); g=Math.round(238+mv*17); b=Math.round(170+mv*40); density=0.38+mv*0.52;
+          if (bestOrbBright > 0.05) {
+            const blend = Math.min(1, bestOrbBright * 1.2);
+            r = Math.round(bestOrbR * blend + (12 + sv*35) * (1-blend));
+            g = Math.round(bestOrbG * blend + (30 + sv*70) * (1-blend));
+            b = Math.round(bestOrbB * blend + (90 + sv*110) * (1-blend));
+            density = 0.35 + blend * 0.60;
+
           } else if (inCypress) {
-            const tv=(Math.sin(nx*42+ny*28-t*0.4)+1)*0.5;
-            r=Math.round(6+tv*20); g=Math.round(20+tv*30); b=Math.round(8+tv*18); density=0.70+tv*0.24;
+            const tex = (Math.sin(nx*55 + ny*38 - t*0.5)+1)*0.5;
+            const edge = 1 - Math.abs(nx - cypX) / cypW;
+            r = Math.round(8  + tex*18 + edge*5);
+            g = Math.round(14 + tex*22 + edge*8);
+            b = Math.round(8  + tex*14);
+            density = 0.68 + tex*0.26;
+
           } else if (inVillage) {
-            const bldgH=0.72+(Math.sin(Math.floor(nx*14)*7.3)*0.5+0.5)*0.12;
-            if (ny>bldgH) {
-              const wv=(Math.sin(nx*20+ny*16)+1)*0.5;
-              r=Math.round(150+wv*70); g=Math.round(100+wv*55); b=Math.round(20+wv*45); density=0.50+wv*0.32;
+            // Tiny warm-lit buildings
+            const bldgSeed = Math.floor(nx * 18);
+            const bldgTop = 0.82 + (Math.sin(bldgSeed * 7.3) * 0.5 + 0.5) * 0.09;
+            const isWindow = ny > bldgTop + 0.02 && ny < bldgTop + 0.055
+              && ((nx * 60) % 1) > 0.3 && ((nx * 60) % 1) < 0.6
+              && Math.sin(bldgSeed * 13.7) > 0.3;
+            if (isWindow) {
+              r=255; g=195; b=45; density=0.88;
+            } else if (ny > bldgTop) {
+              r=12; g=18; b=55; density=0.55;
             } else {
-              r=10; g=16; b=52; density=0.20+sv*0.28;
+              r=8; g=14; b=48; density=0.18 + sv*0.25;
             }
+
           } else if (inHills) {
-            const hv=(Math.sin(nx*9+ny*5-t*0.07)+1)*0.5;
-            r=Math.round(10+hv*22); g=Math.round(38+hv*45); b=Math.round(50+hv*60); density=0.48+hv*0.38;
+            const hv = (Math.sin(nx*8 + ny*4 - t*0.08)+1)*0.5;
+            const ridge = Math.max(0, 1 - Math.abs(ny - hill1) * 18);
+            r = Math.round(14 + hv*20 + ridge*25);
+            g = Math.round(30 + hv*35 + ridge*30);
+            b = Math.round(88 + hv*55 + ridge*40);
+            density = 0.42 + hv*0.36;
+
           } else {
-            // Sky
-            const depth=1-ny;
-            const boost=mProx*0.4;
-            r=Math.round( 6+sv*30+depth*20+boost*50);
-            g=Math.round(28+sv*60+depth*40+boost*80);
-            b=Math.round(85+sv*95+depth*45+boost*40);
-            density=0.32+sv*0.48+mProx*0.08;
+            // Sky — deep blue with Van Gogh swirls
+            const depth = 1 - ny * 0.5; // slightly darker at top
+            r = Math.round(10 + sv*38 + depth*12 + mProx*40);
+            g = Math.round(24 + sv*72 + depth*25 + mProx*70);
+            b = Math.round(88 + sv*115 + depth*35 + mProx*35);
+            density = 0.28 + sv*0.52 + mProx*0.10;
           }
 
-          r=Math.min(255,Math.max(0,r));
-          g=Math.min(255,Math.max(0,g));
-          b=Math.min(255,Math.max(0,b));
+          r = Math.min(255, Math.max(0, r));
+          g = Math.min(255, Math.max(0, g));
+          b = Math.min(255, Math.max(0, b));
 
-          const ci=Math.min(CHARS.length-1,Math.floor(density*CHARS.length));
-          const ch2=CHARS[ci];
-          if (ch2===' ') continue;
+          const ci  = Math.min(CHARS.length-1, Math.floor(density * CHARS.length));
+          const ch2 = CHARS[ci];
+          if (ch2 === ' ') continue;
 
-          ctx.fillStyle=`rgb(${r},${g},${b})`;
-          ctx.fillText(ch2, col*cw+cw/2, row*ch+ch-1);
+          ctx.fillStyle = `rgb(${r},${g},${b})`;
+          ctx.fillText(ch2, col*cw + cw/2, row*ch + ch-1);
         }
       }
 
-      // glow pass
-      const gCtx=glowC.getContext('2d');
-      gCtx.clearRect(0,0,W,H);
-      gCtx.filter='blur(4px)';
-      gCtx.drawImage(canvas,0,0);
-      gCtx.filter='none';
-      ctx.globalCompositeOperation='lighter';
-      ctx.globalAlpha=0.12;
-      ctx.drawImage(glowC,0,0);
-      ctx.globalAlpha=1;
-      ctx.globalCompositeOperation='source-over';
+      // Glow pass
+      const gCtx = glowC.getContext('2d');
+      gCtx.clearRect(0, 0, W, H);
+      gCtx.filter = 'blur(5px)';
+      gCtx.drawImage(canvas, 0, 0);
+      gCtx.filter = 'none';
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.18;
+      ctx.drawImage(glowC, 0, 0);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
 
-      time += 0.016 * 0.22;
+      time += 0.016 * 0.20;
       raf = requestAnimationFrame(draw);
     }
 

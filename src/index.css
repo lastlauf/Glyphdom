@@ -2,9 +2,9 @@
 
 @font-face {
   font-family: 'Thunder';
-  src: url('/Thunder-ExtraBoldLCItalic.ttf') format('truetype');
-  font-weight: 800;
-  font-style: italic;
+  src: url('/Thunder-BlackLC.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
   font-display: swap;
 }
 
@@ -108,10 +108,10 @@ input { font-family: inherit; }
 
 .logo-text {
   font-family: var(--font-thunder);
-  font-size: 1.4rem;
-  font-weight: 800;
-  font-style: italic;
-  letter-spacing: 0.01em;
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: var(--text);
   transition: color var(--dur-micro) var(--ease-silk);
 }
@@ -396,10 +396,10 @@ input { font-family: inherit; }
 
 .studio-logo {
   font-family: var(--font-thunder);
-  font-size: 1.4rem;
-  font-weight: 800;
-  font-style: italic;
-  letter-spacing: 0.01em;
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   color: rgba(240, 238, 233, 0.9);
 }
 
@@ -858,9 +858,9 @@ input { font-family: inherit; }
 .landing-headline {
   font-family: var(--font-thunder);
   font-size: var(--text-hero);
-  font-weight: 800;
-  font-style: italic;
-  letter-spacing: -0.01em;
+  font-weight: 900;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
   line-height: 0.9;
   color: var(--text);
   animation: clipReveal var(--dur-cinematic) var(--ease-expo-out) both;
@@ -952,11 +952,11 @@ input { font-family: inherit; }
 
 .skull-showcase-heading {
   font-family: var(--font-thunder);
-  font-size: clamp(2.4rem, 4vw, 4.2rem);
-  font-weight: 800;
-  font-style: italic;
-  line-height: 1;
-  letter-spacing: -0.01em;
+  font-size: clamp(2.8rem, 4.5vw, 5rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 0.95;
+  letter-spacing: 0.03em;
   color: var(--text);
   margin: 0;
 }
@@ -1022,11 +1022,11 @@ input { font-family: inherit; }
 
 .gallery-portrait-heading {
   font-family: var(--font-thunder);
-  font-size: clamp(2.6rem, 3.8vw, 4.4rem);
-  font-weight: 800;
-  font-style: italic;
-  line-height: 0.96;
-  letter-spacing: -0.01em;
+  font-size: clamp(3rem, 4.2vw, 5.2rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  line-height: 0.93;
+  letter-spacing: 0.03em;
   color: #FFFFFF;
   margin: 0;
 }
@@ -1073,10 +1073,10 @@ input { font-family: inherit; }
 
 .landing-grid-title {
   font-family: var(--font-thunder);
-  font-size: clamp(1.8rem, 2.5vw, 2.4rem);
-  font-weight: 800;
-  font-style: italic;
-  letter-spacing: -0.01em;
+  font-size: clamp(2rem, 2.8vw, 2.8rem);
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--text);
   line-height: 1;
 }
@@ -1189,9 +1189,9 @@ input { font-family: inherit; }
 .gallery-title {
   font-family: var(--font-thunder);
   font-size: var(--text-2xl);
-  font-weight: 800;
-  font-style: italic;
-  letter-spacing: -0.01em;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
   line-height: 1;
   color: var(--text);
 }
