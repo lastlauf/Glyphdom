@@ -75,8 +75,9 @@ export default function Studio() {
         <Link to="/" className="studio-logo">GLYPHDOM</Link>
         <div className="studio-nav-links">
           <StatusBar stats={stats} inline />
-          <Link to="/" className="studio-nav-link">Home</Link>
-          <Link to="/gallery" className="studio-nav-link">Community</Link>
+          <span className="studio-nav-link studio-nav-link--active">Studio</span>
+          <Link to="/gallery" className="studio-nav-link">Gallery</Link>
+          <Link to="/auth" className="studio-nav-link">Create</Link>
         </div>
       </div>
 
