@@ -897,7 +897,7 @@ input { font-family: inherit; }
 .gallery-portrait-cta {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  min-height: 600px;
+  min-height: 720px;
   background: #07070C;
   border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
@@ -913,8 +913,8 @@ input { font-family: inherit; }
 
 .vangogh-canvas {
   display: block;
-  width: 384px;
-  height: 504px;
+  width: 480px;
+  height: 640px;
   flex-shrink: 0;
   image-rendering: pixelated;
 }
@@ -1129,7 +1129,7 @@ input { font-family: inherit; }
 .gallery-card:hover .gallery-card-canvas { transform: scale(1.02); }
 
 .gallery-card-canvas {
-  aspect-ratio: 16/10;
+  aspect-ratio: 4/3;
   background: var(--canvas-bg);
   display: flex; align-items: center; justify-content: center;
   transition: transform var(--dur-slow) var(--ease-cinematic);
@@ -1494,7 +1494,7 @@ input { font-family: inherit; }
   /* Van Gogh gallery CTA — stack on mobile */
   .gallery-portrait-cta { grid-template-columns: 1fr; }
   .gallery-portrait-canvas-wrap { padding: var(--sp-6) var(--sp-5); min-height: 360px; }
-  .vangogh-canvas { width: 100%; max-width: 384px; height: auto; aspect-ratio: 384 / 504; }
+  .vangogh-canvas { width: 100%; max-width: 480px; height: auto; aspect-ratio: 480 / 640; }
   .gallery-portrait-copy { padding: var(--sp-6) var(--sp-5); border-left: none; border-top: 1px solid rgba(255,255,255,0.06); }
 
   /* Gallery */

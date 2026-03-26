@@ -5,18 +5,18 @@ import { registerPreview, unregisterPreview } from '../lib/sharedLoop.js';
 import { IconHeart } from '../components/Icons.jsx';
 
 const MOCK_ENTRIES = [
-  { id:  1, template: 'Pac-Man',        title: 'Pac-Man',         author: 'ghost_hunt',   likes: 847 },
-  { id:  2, template: 'Space Invaders', title: 'Space Invaders',  author: 'pixel_raid',   likes: 612 },
-  { id:  3, template: 'Nyan Cat',       title: 'Nyan Cat',        author: 'nyan.wav',     likes: 1204 },
-  { id:  4, template: 'Snake',          title: 'Snake',           author: 'snek_king',    likes: 389 },
-  { id:  5, template: 'Tetris',         title: 'Tetris',          author: 'tetromino_',   likes: 731 },
-  { id:  6, template: 'Matrix',         title: 'The Matrix',      author: 'r3d_pill',     likes: 956 },
-  { id:  7, template: 'Game of Life',   title: 'Game of Life',    author: 'conway_fan',   likes: 428 },
-  { id:  8, template: 'Starfield',      title: 'Hyperspace',      author: 'han_s0lo',     likes: 573 },
-  { id:  9, template: 'Plasma',         title: 'Synthwave',       author: 'vapor_wave',   likes: 682 },
-  { id: 10, template: 'Fire',           title: 'Hadouken',        author: 'sf2_fan',      likes: 441 },
-  { id: 11, template: 'Ripple',         title: 'Blade Runner',    author: 'voight_k',     likes: 318 },
-  { id: 12, template: 'Flow Field',     title: 'Interstellar',    author: 'nolan_wr',     likes: 509 },
+  { id:  1, template: 'Pac-Man',    title: 'Ghost Maze',     author: 'ghost_hunt',  likes: 847  },
+  { id:  2, template: 'Skull',      title: 'Memento Mori',   author: 'bone_haus',   likes: 1038 },
+  { id:  3, template: 'Star Wars',  title: 'The Crawl',      author: 'jedi_scribe', likes: 924  },
+  { id:  4, template: 'Snake',      title: 'Ouroboros',      author: 'snek_king',   likes: 389  },
+  { id:  5, template: 'Tetris',     title: 'Cascade',        author: 'tetromino_',  likes: 731  },
+  { id:  6, template: 'Matrix',     title: 'The Construct',  author: 'r3d_pill',    likes: 956  },
+  { id:  7, template: 'Game of Life', title: 'Emergence',    author: 'conway_fan',  likes: 428  },
+  { id:  8, template: 'Magnetic',   title: 'Ferrofluid',     author: 'magnet___',   likes: 612  },
+  { id:  9, template: 'Plasma',     title: 'Synthwave',      author: 'vapor_wave',  likes: 682  },
+  { id: 10, template: 'Fire',       title: 'Hadouken',       author: 'sf2_fan',     likes: 441  },
+  { id: 11, template: 'Ripple',     title: 'Blade Runner',   author: 'voight_k',    likes: 318  },
+  { id: 12, template: 'Ocean',      title: 'Bioluminescence',author: 'deep_sea__',  likes: 573  },
 ];
 
 function GalleryPreview({ templateName }) {
@@ -51,7 +51,7 @@ function GalleryPreview({ templateName }) {
     const tick = (dt) => {
       if (!canvas.isConnected) return;
       inst.update(dt * 0.5, params, colors);
-      inst.render(canvas.getContext('2d'), canvas.width, canvas.height, 12, 18, params, colors);
+      inst.render(canvas.getContext('2d'), canvas.width, canvas.height, 8, 12, params, colors);
     };
     registerPreview(tick);
 

@@ -15,10 +15,13 @@ import circuits      from './circuits.js';
 import rain          from './rain.js';
 import ripple        from './ripple.js';
 import magnetic      from './magnetic.js';
+import skull        from './skull.js';
+import starwarscrawl from './starwarscrawl.js';
 
 export const TEMPLATES = [
   plasma, flowfield, fire, starfield, pacman, spaceinvaders,
   tetris, snake, matrix, nyancat, gameoflife,
   ocean, marble, circuits, rain, ripple, magnetic,
+  skull, starwarscrawl,
 ];
 export default TEMPLATES;

@@ -4,19 +4,21 @@ import TEMPLATES from '../lib/templates/index.js';
 import { IconLightning, IconSliders, IconHexGrid, IconPalette } from '../components/Icons.jsx';
 import { registerPreview, unregisterPreview } from '../lib/sharedLoop.js';
 
-const flowTemplate = TEMPLATES.find(t => t.name === 'Flow Field');
+const plasmaTemplate = TEMPLATES.find(t => t.name === 'Plasma');
 
 function ShowcaseCanvas() {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !flowTemplate) return;
+    if (!canvas || !plasmaTemplate) return;
 
     const params = Object.fromEntries(
-      Object.entries(flowTemplate.params).map(([k, v]) => [k, v.default])
+      Object.entries(plasmaTemplate.params).map(([k, v]) => [k, v.default])
     );
-    const colors = { ...flowTemplate.colors };
+    params.speed = 1.1;
+    params.frequency = 2.8;
+    const colors = { ...plasmaTemplate.colors };
 
     const resize = () => {
       canvas.width  = canvas.offsetWidth;
@@ -26,8 +28,22 @@ function ShowcaseCanvas() {
     const ro = new ResizeObserver(resize);
     ro.observe(canvas);
 
-    const inst = flowTemplate.createInstance();
+    const inst = plasmaTemplate.createInstance();
     inst.init(canvas, params, colors);
+
+    const onMove = (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const scaleX = canvas.width / rect.width;
+      const scaleY = canvas.height / rect.height;
+      inst.setMouse(
+        (e.clientX - rect.left) * scaleX,
+        (e.clientY - rect.top) * scaleY,
+        true, 'ripple'
+      );
+    };
+    const onLeave = () => inst.setMouse(-1, -1, false, 'ripple');
+    canvas.addEventListener('mousemove', onMove);
+    canvas.addEventListener('mouseleave', onLeave);
 
     let raf, last = 0;
     const tick = (ts) => {
@@ -42,6 +58,8 @@ function ShowcaseCanvas() {
     return () => {
       cancelAnimationFrame(raf);
       ro.disconnect();
+      canvas.removeEventListener('mousemove', onMove);
+      canvas.removeEventListener('mouseleave', onLeave);
       if (inst.destroy) inst.destroy();
     };
   }, []);
@@ -132,19 +150,22 @@ function GalleryCard({ template, index, templateIndex }) {
   );
 }
 
-// Mona Lisa portrait — procedural ASCII portrait with sfumato atmosphere
 function MonaLisaPortrait() {
   const canvasRef = useRef(null);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    canvas.width  = 384;
-    canvas.height = 504;
+    canvas.width  = 480;
+    canvas.height = 640;
 
     const CHARS = ' .,:;!|i+xX#%@$&█▓▒░';
     let time = 0;
     let raf;
+
+    // Offscreen canvas for glow pass — created once
+    const glowC = document.createElement('canvas');
+    glowC.width = 480; glowC.height = 640;
 
     function noise(x, y, t) {
       return (
@@ -158,17 +179,16 @@ function MonaLisaPortrait() {
     function draw() {
       const ctx = canvas.getContext('2d');
       const W = canvas.width, H = canvas.height;
-      const cw = 8, ch = 12;
+      const cw = 6, ch = 9;
       const cols = Math.ceil(W / cw), rows = Math.ceil(H / ch);
 
-      ctx.fillStyle = '#131208';
+      ctx.fillStyle = '#0E0D06';
       ctx.fillRect(0, 0, W, H);
-      ctx.font = '500 10px "JetBrains Mono", monospace';
+      ctx.font = '500 7px "JetBrains Mono", monospace';
       ctx.textAlign = 'center';
 
       const t = time;
-      // Mona Lisa — 3/4 pose, face slightly left of center
-      const FCX = 0.475, FCY = 0.355;
+      const FCX = 0.478, FCY = 0.345;
 
       for (let row = 0; row < rows; row++) {
         for (let col = 0; col < cols; col++) {
@@ -177,90 +197,81 @@ function MonaLisaPortrait() {
           const dx = nx - FCX;
           const dy = ny - FCY;
 
-          // Zone detection — Mona Lisa proportions
-          const skinDist    = (dx / 0.205) ** 2 + (dy / 0.24) ** 2;
-          // Hair: parted in middle, flows down both sides
-          const hairTopD    = (dx / 0.165) ** 2 + ((ny - 0.175) / 0.15) ** 2;
-          const leftHairD   = ((nx - 0.235) / 0.125) ** 2 + ((ny - 0.46) / 0.28) ** 2;
-          const rightHairD  = ((nx - 0.715) / 0.105) ** 2 + ((ny - 0.42) / 0.24) ** 2;
-          const neckD       = ((nx - FCX) / 0.068) ** 2 + ((ny - 0.59) / 0.09) ** 2;
-          const handsD      = ((nx - 0.50) / 0.24) ** 2 + ((ny - 0.90) / 0.09) ** 2;
-          const inDress     = ny > 0.70 || (ny > 0.62 && (nx < 0.24 || nx > 0.74));
-          const inShoulders = ny > 0.57 && ny < 0.72 && Math.abs(dx) > 0.13 && Math.abs(dx) < 0.36;
-          // Eyes — slightly asymmetric (3/4 pose)
-          const leftEye     = ((nx - 0.412) / 0.031) ** 2 + ((ny - 0.352) / 0.018) ** 2 < 1;
-          const rightEye    = ((nx - 0.545) / 0.030) ** 2 + ((ny - 0.349) / 0.018) ** 2 < 1;
-          const lipsD       = ((nx - FCX + 0.008) / 0.062) ** 2 + ((ny - 0.465) / 0.020) ** 2;
+          // Zone detection
+          const skinDist    = (dx / 0.21) ** 2 + (dy / 0.245) ** 2;
+          const hairTopD    = (dx / 0.175) ** 2 + ((ny - 0.165) / 0.155) ** 2;
+          const leftHairD   = ((nx - 0.225) / 0.135) ** 2 + ((ny - 0.465) / 0.30) ** 2;
+          const rightHairD  = ((nx - 0.725) / 0.110) ** 2 + ((ny - 0.425) / 0.255) ** 2;
+          const neckD       = ((nx - FCX) / 0.072) ** 2 + ((ny - 0.595) / 0.095) ** 2;
+          const handsD      = ((nx - 0.50) / 0.255) ** 2 + ((ny - 0.905) / 0.085) ** 2;
+          const inDress     = ny > 0.70 || (ny > 0.625 && (nx < 0.235 || nx > 0.745));
+          const inShoulders = ny > 0.575 && ny < 0.72 && Math.abs(dx) > 0.125 && Math.abs(dx) < 0.375;
+          const leftEye     = ((nx - 0.415) / 0.033) ** 2 + ((ny - 0.345) / 0.020) ** 2 < 1;
+          const rightEye    = ((nx - 0.548) / 0.031) ** 2 + ((ny - 0.342) / 0.019) ** 2 < 1;
+          const lipsD       = ((nx - FCX + 0.006) / 0.066) ** 2 + ((ny - 0.465) / 0.022) ** 2;
 
           const n  = noise(nx * 8, ny * 7, t);
           const nn = (n + 1) * 0.5;
 
-          // Sfumato: hazy olive-yellow-green atmospheric background
           const bgN    = noise(nx * 4, ny * 3.5, t * 0.25);
-          const bgHaze = (bgN + 1) * 0.5 * 0.6 + 0.4;
-          // Left side (rocks) darker olive, right side (sky/water) warmer yellow-green
+          const bgHaze = (bgN + 1) * 0.5 * 0.65 + 0.35;
           const leftBias  = Math.max(0, 0.5 - nx) * 1.2;
           const rightBias = Math.max(0, nx - 0.5) * 0.8;
 
           let r, g, b, density;
 
           if (leftEye || rightEye) {
-            r = 42; g = 32; b = 20; density = 0.90;
+            r = 48; g = 36; b = 22; density = 0.92;
 
           } else if (lipsD < 1.0) {
-            const lv = 0.72 + nn * 0.28;
-            r = Math.round(168 * lv); g = Math.round(98 * lv); b = Math.round(52 * lv);
-            density = 0.48 + nn * 0.36;
+            const lv = 0.75 + nn * 0.25;
+            r = Math.round(180 * lv); g = Math.round(108 * lv); b = Math.round(58 * lv);
+            density = 0.50 + nn * 0.34;
 
           } else if (skinDist < 1.0) {
-            // Warm golden amber — da Vinci's characteristic warm flesh
-            const s = 0.74 + nn * 0.26;
-            r = Math.round((202 + nn * 28) * s);
-            g = Math.round((152 + nn * 20) * s);
-            b = Math.round((72  + nn * 16) * s);
-            density = 0.14 + nn * 0.36;
+            const s = 0.78 + nn * 0.22;
+            r = Math.round((225 + nn * 22) * s);
+            g = Math.round((165 + nn * 18) * s);
+            b = Math.round((80  + nn * 14) * s);
+            density = 0.12 + nn * 0.34;
 
-          } else if (hairTopD < 1.0 && ny < FCY + 0.08) {
-            // Parted center hair — dark auburn
+          } else if (hairTopD < 1.0 && ny < FCY + 0.09) {
             const hs = (Math.sin(nx * 13 + ny * 15 - t * 0.5) + 1) * 0.5;
-            r = Math.round(82 + hs * 26); g = Math.round(42 + hs * 18); b = Math.round(16 + hs * 10);
-            density = 0.64 + nn * 0.30;
+            r = Math.round(92 + hs * 28); g = Math.round(48 + hs * 20); b = Math.round(18 + hs * 11);
+            density = 0.66 + nn * 0.28;
 
           } else if (leftHairD < 1.0) {
-            // Left flowing hair — dark auburn, gentle wave
             const hs = (Math.sin(nx * 9 + ny * 18 - t * 0.45) + 1) * 0.5;
-            r = Math.round(80 + hs * 28); g = Math.round(40 + hs * 20); b = Math.round(15 + hs * 10);
-            density = 0.60 + nn * 0.32;
+            r = Math.round(88 + hs * 30); g = Math.round(45 + hs * 22); b = Math.round(16 + hs * 11);
+            density = 0.62 + nn * 0.30;
 
           } else if (rightHairD < 1.0) {
             const hs = (Math.sin(nx * 9 + ny * 16 - t * 0.40) + 1) * 0.5;
-            r = Math.round(78 + hs * 26); g = Math.round(38 + hs * 18); b = Math.round(14 + hs * 9);
-            density = 0.58 + nn * 0.32;
+            r = Math.round(86 + hs * 28); g = Math.round(43 + hs * 20); b = Math.round(15 + hs * 10);
+            density = 0.60 + nn * 0.30;
 
           } else if (neckD < 1.0) {
-            const s = 0.70 + nn * 0.26;
-            r = Math.round(196 * s); g = Math.round(142 * s); b = Math.round(64 * s);
-            density = 0.15 + nn * 0.33;
+            const s = 0.74 + nn * 0.24;
+            r = Math.round(210 * s); g = Math.round(155 * s); b = Math.round(70 * s);
+            density = 0.14 + nn * 0.30;
 
           } else if (handsD < 1.0) {
-            const s = 0.64 + nn * 0.28;
-            r = Math.round(188 * s); g = Math.round(136 * s); b = Math.round(60 * s);
-            density = 0.18 + nn * 0.34;
+            const s = 0.68 + nn * 0.26;
+            r = Math.round(202 * s); g = Math.round(148 * s); b = Math.round(64 * s);
+            density = 0.16 + nn * 0.32;
 
           } else if (inDress || inShoulders) {
-            // Very dark olive-charcoal dress
             const ds = (Math.sin(nx * 7 + ny * 5 + t * 0.2) + 1) * 0.5;
-            r = Math.round(26 + ds * 18 + leftBias * 8);
-            g = Math.round(28 + ds * 20 + leftBias * 6);
-            b = Math.round(16 + ds * 12);
-            density = 0.44 + nn * 0.42;
+            r = Math.round(30 + ds * 20 + leftBias * 8);
+            g = Math.round(32 + ds * 22 + leftBias * 6);
+            b = Math.round(18 + ds * 14);
+            density = 0.46 + nn * 0.40;
 
           } else {
-            // Sfumato landscape — warm olive-yellow with atmospheric haze
-            const haze = bgHaze - leftBias * 0.3 + rightBias * 0.1;
-            r = Math.round(88  + haze * 68 - leftBias * 20);
-            g = Math.round(90  + haze * 58 - leftBias * 10);
-            b = Math.round(30  + haze * 32 + rightBias * 10);
+            const haze = Math.max(0.1, bgHaze - leftBias * 0.3 + rightBias * 0.1);
+            r = Math.round(108 + haze * 72 - leftBias * 25);
+            g = Math.round(105 + haze * 62 - leftBias * 12);
+            b = Math.round(38  + haze * 35 + rightBias * 12);
             density = 0.28 + haze * 0.44;
           }
 
@@ -273,11 +284,23 @@ function MonaLisaPortrait() {
           if (char === ' ') continue;
 
           ctx.fillStyle = `rgb(${r},${g},${b})`;
-          ctx.fillText(char, col * cw + cw / 2, row * ch + ch - 2);
+          ctx.fillText(char, col * cw + cw / 2, row * ch + ch - 1);
         }
       }
 
-      time += 0.016 * 0.18; // slow, contemplative
+      // Subtle glow/bloom pass
+      const gCtx = glowC.getContext('2d');
+      gCtx.clearRect(0, 0, 480, 640);
+      gCtx.filter = 'blur(4px)';
+      gCtx.drawImage(canvas, 0, 0);
+      gCtx.filter = 'none';
+      ctx.globalCompositeOperation = 'lighter';
+      ctx.globalAlpha = 0.10;
+      ctx.drawImage(glowC, 0, 0);
+      ctx.globalAlpha = 1;
+      ctx.globalCompositeOperation = 'source-over';
+
+      time += 0.016 * 0.16;
       raf = requestAnimationFrame(draw);
     }
 
@@ -340,6 +363,11 @@ export default function Landing() {
   const headRef = useRef(null);
   const heroBgRef = useRef(null);
 
+  const GAME_NAMES = new Set(['Pac-Man','Space Invaders','Tetris','Snake','Nyan Cat','Game of Life','Mario','Smiley','Star Wars']);
+  const AMBIENT_TEMPLATES = TEMPLATES
+    .map((tmpl, i) => ({ tmpl, originalIndex: i }))
+    .filter(({ tmpl }) => !GAME_NAMES.has(tmpl.name));
+
   useEffect(() => {
     scrambleTo(headRef.current, 'Make text move.', 500, 1200);
   }, []);
@@ -389,9 +417,21 @@ export default function Landing() {
           <p className="skull-showcase-label">Interactive</p>
           <h2 className="skull-showcase-heading">Move your cursor<br />through it.</h2>
           <p className="skull-showcase-body">
-            Every character responds to where you are. Hover the canvas — a vortex bends the flow field around your cursor in real time.
+            Every character responds to where you are. Hover the canvas — waves bend and pulse around your cursor — the plasma responds to every move.
           </p>
           <Link to="/studio" className="cta-primary" style={{ alignSelf: 'flex-start' }}>Try in Studio</Link>
+        </div>
+      </div>
+
+      <div className="landing-grid-section">
+        <div className="landing-grid-header">
+          <h2 className="landing-grid-title">Templates</h2>
+          <span className="landing-grid-count">{AMBIENT_TEMPLATES.length} animations</span>
+        </div>
+        <div className="template-gallery-grid">
+          {AMBIENT_TEMPLATES.map(({ tmpl, originalIndex }) => (
+            <GalleryCard key={tmpl.name} template={tmpl} index={originalIndex} templateIndex={originalIndex} />
+          ))}
         </div>
       </div>
 
@@ -411,18 +451,6 @@ export default function Landing() {
             The Glyphdom community turns images, videos, and ideas into living ASCII art. Browse what others have made — or upload your own.
           </p>
           <Link to="/gallery" className="cta-gallery">Browse Gallery →</Link>
-        </div>
-      </div>
-
-      <div className="landing-grid-section">
-        <div className="landing-grid-header">
-          <h2 className="landing-grid-title">Templates</h2>
-          <span className="landing-grid-count">{TEMPLATES.length} animations</span>
-        </div>
-        <div className="template-gallery-grid">
-          {TEMPLATES.map((tmpl, i) => (
-            <GalleryCard key={tmpl.name} template={tmpl} index={i} templateIndex={i} />
-          ))}
         </div>
       </div>
     </div>
